@@ -19,7 +19,11 @@ export default function VerifyOtpForm() {
 
   const successPath = otpFlow === "forgot-password" ? "/reset-password" : "/";
 
-  const [timer, setTimer] = useState(360);
+  const initialExpiry =
+    (location.state as { expiresIn?: number } | null)?.expiresIn ?? 60;
+
+  const [timer, setTimer] = useState(initialExpiry);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
     if (timer <= 0) return;
@@ -45,24 +49,52 @@ export default function VerifyOtpForm() {
 
   const { mutate: verifyOtp, isPending: isVerifying } = useOtp({
     onSuccess: () => {
+      setErrorMessage("");
       navigate(successPath);
     },
     onError: (error) => {
       console.log("==========>>", error);
+      const status = (error as { response?: { status?: number } }).response
+        ?.status;
+      const message = (
+        error as {
+          response?: { data?: { message?: string; err?: string } };
+        }
+      ).response?.data;
+      const text =
+        message?.message ||
+        message?.err ||
+        (status === 401
+          ? "OTP session expired or invalid. Please resend a new code."
+          : "Something went wrong. Please try again.");
+      setErrorMessage(text);
     },
   });
 
   const { mutate: resendOtp, isPending: isResending } = useResendOtp({
-    onSuccess: () => {
-      setTimer(360);
+    onSuccess: (response) => {
+      setErrorMessage("");
+      setTimer(response?.data?.expiresIn ?? 60);
       setValue("otp", "");
+      setErrorMessage("A new code has been sent to your email.");
     },
     onError: (error) => {
       console.log("==========>>", error);
+      const message = (
+        error as {
+          response?: { data?: { message?: string; err?: string } };
+        }
+      ).response?.data;
+      const text =
+        message?.message ||
+        message?.err ||
+        "Failed to resend the code. Please try again.";
+      setErrorMessage(text);
     },
   });
 
   const onSubmit = (data: VerifyOtpFormData) => {
+    setErrorMessage("");
     verifyOtp(data);
   };
 
@@ -94,6 +126,12 @@ export default function VerifyOtpForm() {
           "OTP Expired"
         )}
       </p>
+
+      {errorMessage && (
+        <p className="mb-4 rounded-xl border border-[#FBD5D5] bg-[#FEF2F2] px-4 py-3 text-center text-[13px] font-semibold text-[#d64545]">
+          {errorMessage}
+        </p>
+      )}
 
       <form
         onSubmit={handleSubmit(onSubmit)}

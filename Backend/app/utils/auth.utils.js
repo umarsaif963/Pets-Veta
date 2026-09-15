@@ -13,6 +13,23 @@ const otpGenerator = () => {
 
   return otp.toString();
 }
+
+// Reads JWT_OTP_EXPIRY (e.g. "5m", "300s", "1h") and returns the expiry in
+// seconds so the frontend can show a countdown that matches the backend.
+const otpExpirySeconds = () => {
+  const expiry = process.env.JWT_OTP_EXPIRY || "5m";
+  const match = String(expiry).trim().match(/^(\d+)\s*(s|m|h|d)?$/i);
+
+  if (!match) {
+    return 300;
+  }
+
+  const value = parseInt(match[1], 10);
+  const unit = (match[2] || "m").toLowerCase();
+  const multipliers = { s: 1, m: 60, h: 3600, d: 86400 };
+
+  return value * (multipliers[unit] || 1);
+}
 const sendAppointmentConfirmationEmail = async (email, appointmentDetails) => {
   const { doctorName, checkupTime, appointmentCode } = appointmentDetails;
 
@@ -262,6 +279,7 @@ const sendStatusEmail = async (email, status) => {
 
 module.exports = {
   otpGenerator,
+  otpExpirySeconds,
   sendOtp,
   sendStatusEmail,
   sendAppointmentConfirmationEmail

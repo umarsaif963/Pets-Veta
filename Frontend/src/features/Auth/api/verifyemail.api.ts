@@ -2,7 +2,8 @@ import type { ForgotPasswordFormData } from "../schemas/forgot-password.schema";
 import { api, handleAxiosError } from "@/features/api interface/axios.interface";
 
 type Data = {
-    email: string
+    email: string,
+    expiresIn?: number
 }
 
 export type ApiResponse = {

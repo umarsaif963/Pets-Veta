@@ -105,42 +105,39 @@ const createDoctorAccount = catchAsync(async (req, res) => {
         publicUrl: publicUrl
     }
 
-
-    let newDoctor = await authServices.createDoctor(doctorData);
-
-    if (!newDoctor) {
-        throw new AppError("User already Exist", 400);
-    }
-
+    // The account is only created once the OTP is verified, so the code must
+    // be delivered first. If the email cannot be sent the request fails loudly
+    // and the frontend stays on the signup form instead of navigating away to a
+    // page that will never receive a code.
     const otpCode = authUtils.otpGenerator();
     const hashedOtp = await bcrypt.hash(otpCode, 12);
-    await authServices.saveUserOtp(email, hashedOtp);
-
-    const payload = {
-        id: newDoctor.id,
-        email: newDoctor.email
-    };
-
-    newDoctor = {
-        id: newDoctor.id,
-        email: newDoctor.email,
-        username: newDoctor.username,
-        role: newDoctor.userRole.role
-
-    }
-
-    const otpToken = jwtSign(payload, Token_Types.OTP);
-
-    res.cookie('otpToken', otpToken, cookiesOptions);
 
     try {
         const info = await authUtils.sendOtp(email, otpCode);
         console.log("OTP sent to", email, info?.messageId);
     } catch (err) {
         console.error("Failed to send OTP email:", err?.message);
+        throw new AppError("We couldn't send the verification code to your email. Please check your email address and try again.", 502);
     }
 
-    return sendResponse(res, 201, "Success", newDoctor);
+    const payload = {
+        purpose: "SIGNUP",
+        role: "Doctor",
+        email,
+        hashedOtp,
+        pendingData: doctorData
+    };
+
+    const otpToken = jwtSign(payload, Token_Types.OTP);
+
+    res.cookie('otpToken', otpToken, cookiesOptions);
+
+    return sendResponse(res, 201, "Success", {
+        email: doctorData.email,
+        username: doctorData.username,
+        role: "Doctor",
+        expiresIn: authUtils.otpExpirySeconds()
+    });
 
 })
 
@@ -151,51 +148,53 @@ const createPetOwnerAccount = catchAsync(async (req, res) => {
 
     const { fullName, username, email, password } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    const petOwnerData = {
-        ...req.body,
-        hashedPassword
-    }
-
-
-
-    let newPetOwner = await authServices.createPetOwner(petOwnerData);
-    if (!newPetOwner) {
+    const isEmailTaken = await authServices.isEmailOrUsernameTaken(email, username);
+    if (isEmailTaken) {
         throw new AppError("Account already Created", 400);
     }
 
-    let validPetOwner = {
-        id: newPetOwner.id,
-        username: newPetOwner.username,
-        email: newPetOwner.email,
-        role: newPetOwner.userRole.role
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const petOwnerData = {
+        fullName,
+        username,
+        email,
+        hashedPassword
     }
 
+    // The account is only created once the OTP is verified, so the code must
+    // be delivered first. If the email cannot be sent the request fails loudly
+    // and the frontend stays on the signup form instead of navigating away to a
+    // page that will never receive a code.
     const otpCode = authUtils.otpGenerator();
     const hashedOtp = await bcrypt.hash(otpCode, 12);
-    await authServices.saveUserOtp(email, hashedOtp);
+
+    try {
+        const info = await authUtils.sendOtp(email, otpCode);
+        console.log("OTP sent to", email, info?.messageId);
+    } catch (err) {
+        console.error("Failed to send OTP email:", err?.message);
+        throw new AppError("We couldn't send the verification code to your email. Please check your email address and try again.", 502);
+    }
 
     const payload = {
-        id: newPetOwner.id,
-        email: newPetOwner.email,
-        role: newPetOwner.userRole.role
+        purpose: "SIGNUP",
+        role: "PetOwner",
+        email,
+        hashedOtp,
+        pendingData: petOwnerData
     }
 
     const otpToken = jwtSign(payload, Token_Types.OTP);
 
     res.cookie('otpToken', otpToken, cookiesOptions);
 
-    try {
-        const info = await authUtils.sendOtp(email, otpCode);
-        console.log("OTP sent to", email, info?.messageId);
-    } catch (err) {
-        // The otpToken cookie is already set above, so the user can still
-        // request a fresh code via the "Resend OTP" flow.
-        console.error("Failed to send OTP email:", err?.message);
-    }
-
-    return sendResponse(res, 200, "Success", validPetOwner);
+    return sendResponse(res, 200, "Success", {
+        email: petOwnerData.email,
+        username: petOwnerData.username,
+        role: "PetOwner",
+        expiresIn: authUtils.otpExpirySeconds()
+    });
 
 
 }
@@ -386,13 +385,14 @@ const verifyUserEmail = catchAsync(async (req, res) => {
     const otpCode = authUtils.otpGenerator();
     const hashedOtp = await bcrypt.hash(otpCode, 12);
     await authServices.saveUserOtp(email, hashedOtp);
-    authUtils.sendOtp(email, otpCode)
-        .then(() => {
-            console.log("OTP sent");
-        })
-        .catch((err) => {
-            console.log("OTP error", err);
-        });
+
+    try {
+        const info = await authUtils.sendOtp(email, otpCode);
+        console.log("OTP sent", info?.messageId);
+    } catch (err) {
+        console.error("Failed to send OTP email:", err?.message);
+        throw new AppError("We couldn't send the verification code to your email. Please try again.", 502);
+    }
 
     const payload = {
         id: validUser.id,
@@ -403,7 +403,10 @@ const verifyUserEmail = catchAsync(async (req, res) => {
 
     res.cookie('otpToken', otpToken, cookiesOptions);
 
-    return sendResponse(res, 200, "Otp sent", email);
+    return sendResponse(res, 200, "Otp sent", {
+        email,
+        expiresIn: authUtils.otpExpirySeconds()
+    });
 
 
 })
@@ -411,13 +414,67 @@ const verifyUserEmail = catchAsync(async (req, res) => {
 
 const verifyOtp = catchAsync(async (req, res) => {
 
-
-    const { id, email } = req.user;
+    requireFields(["otp"], req.body);
     const { otp } = req.body;
     console.log("OTP is ", otp)
-    requireFields(["id", "email"], req.user);
-    requireFields(["otp"], req.body);
 
+    // Signup flow: the account does not exist yet. The pending registration
+    // data lived inside the otpToken cookie, so the account is created here,
+    // after the code has been verified.
+    if (req.user.purpose === "SIGNUP") {
+        const { email, role, hashedOtp, pendingData } = req.user;
+
+        const isMatched = await bcrypt.compare(otp, hashedOtp);
+        if (!isMatched) {
+            throw new AppError("OTP code invalid", 400);
+        }
+
+        let createdUser;
+        if (role === "Doctor") {
+            createdUser = await authServices.createDoctor(pendingData);
+        } else {
+            createdUser = await authServices.createPetOwner(pendingData);
+        }
+
+        if (!createdUser) {
+            throw new AppError("Account already Created", 400);
+        }
+
+        const updatedUserSchema = await authServices.updateOtpField(email);
+        const userData = await authServices.getUserWithRole(email);
+
+        const payload = {
+            id: createdUser.id,
+            username: createdUser.username,
+            email: createdUser.email,
+            role: userData.userRole.role
+        }
+
+        const { accessToken, refreshToken } = createAuthTokens(payload);
+        await authServices.refreshUserToken(email, refreshToken);
+
+        res.cookie("accessToken", accessToken, cookiesOptions);
+        res.cookie("refreshToken", refreshToken, cookiesOptions);
+        res.clearCookie("otpToken", cookiesOptions);
+
+        const safeUser = {
+            id: updatedUserSchema.id,
+            username: updatedUserSchema.username,
+            email: updatedUserSchema.email,
+            role: userData.userRole.role
+        };
+
+        return sendResponse(
+            res,
+            200,
+            "Success",
+            safeUser
+        );
+    }
+
+
+    const { id, email } = req.user;
+    requireFields(["id", "email"], req.user);
 
     const validUser = await authServices.verifyEmail(email);
     if (!validUser) {
@@ -468,6 +525,39 @@ const verifyOtp = catchAsync(async (req, res) => {
 
 const resendUserOtp = catchAsync(async (req, res) => {
 
+    // Signup flow: no account exists yet, so the pending data is re-signed
+    // into a fresh token along with a new code instead of storing it in the DB.
+    if (req.user.purpose === "SIGNUP") {
+        const { email, role, pendingData } = req.user;
+
+        const otpCode = authUtils.otpGenerator();
+        const hashedOtp = await bcrypt.hash(otpCode, 12);
+
+        try {
+            const info = await authUtils.sendOtp(email, otpCode);
+            console.log("OTP resent", info?.messageId);
+        } catch (err) {
+            console.error("Failed to resend OTP email:", err?.message);
+            throw new AppError("We couldn't resend the verification code to your email. Please try again.", 502);
+        }
+
+        const payload = {
+            purpose: "SIGNUP",
+            role,
+            email,
+            hashedOtp,
+            pendingData
+        }
+        const otpToken = jwtSign(payload, Token_Types.OTP);
+
+        res.cookie('otpToken', otpToken, cookiesOptions);
+
+        return sendResponse(res, 201, "Success", {
+            email,
+            expiresIn: authUtils.otpExpirySeconds()
+        });
+    }
+
     const { email } = req.user;
     const validUser = await authServices.verifyEmail(email);
     if (!validUser) {
@@ -476,13 +566,15 @@ const resendUserOtp = catchAsync(async (req, res) => {
     const otpCode = authUtils.otpGenerator();
     const hashedOtp = await bcrypt.hash(otpCode, 12);
     await authServices.saveUserOtp(email, hashedOtp);
-    authUtils.sendOtp(email, otpCode)
-        .then(() => {
-            console.log("OTP sent");
-        })
-        .catch((err) => {
-            console.log("OTP error", err);
-        });
+
+    try {
+        const info = await authUtils.sendOtp(email, otpCode);
+        console.log("OTP resent", info?.messageId);
+    } catch (err) {
+        console.error("Failed to resend OTP email:", err?.message);
+        throw new AppError("We couldn't resend the verification code to your email. Please try again.", 502);
+    }
+
     const payload = {
         id: validUser.id,
         email: validUser.email,
@@ -492,7 +584,10 @@ const resendUserOtp = catchAsync(async (req, res) => {
 
     res.cookie('otpToken', otpToken, cookiesOptions);
 
-    return sendResponse(res, 201, "Success", validUser.email);
+    return sendResponse(res, 201, "Success", {
+        email: validUser.email,
+        expiresIn: authUtils.otpExpirySeconds()
+    });
 })
 
 

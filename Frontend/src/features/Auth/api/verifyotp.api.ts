@@ -5,11 +5,13 @@ type Data = {
     id: string,
     username: string,
     email: string,
-    role: string
+    role: string,
+    expiresIn?: number
 }
 
 type resendOtpData = {
-    email: string
+    email: string,
+    expiresIn?: number
 }
 
 export type ApiResponse = {

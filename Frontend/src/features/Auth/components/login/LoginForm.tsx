@@ -36,7 +36,7 @@ const LoginForm = ({
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="w-full">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate autoComplete="off" className="w-full">
       {serverError && (
         <div
           role="alert"
@@ -52,7 +52,7 @@ const LoginForm = ({
           label="Email Address"
           type="email"
           placeholder="you@example.com"
-          autoComplete="email"
+          autoComplete="off"
           icon={<Mail className="h-5 w-5" />}
           error={errors.email?.message}
           {...register("email")}
@@ -63,7 +63,7 @@ const LoginForm = ({
           label="Password"
           type={showPassword ? "text" : "password"}
           placeholder="Enter your password"
-          autoComplete="current-password"
+          autoComplete="new-password"
           icon={<Lock className="h-5 w-5" />}
           error={errors.password?.message}
           headerRight={

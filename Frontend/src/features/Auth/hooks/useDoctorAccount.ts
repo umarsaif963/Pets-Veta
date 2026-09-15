@@ -13,7 +13,7 @@ export const useDoctorAccountHook = (options: UseMutationOptions<ApiResponse, Er
         onSuccess: (response, variables, onMutateResult, context) => {
             if (response.success) {
                 console.log("Account Success", response);
-                navigate("/verify-otp", { replace: true, state: { from: 'signup' } });
+                navigate("/verify-otp", { replace: true, state: { from: 'signup', expiresIn: response?.data?.expiresIn } });
             }
 
             if (options.onSuccess) {

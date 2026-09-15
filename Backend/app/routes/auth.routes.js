@@ -53,7 +53,7 @@ Router
 
 Router
     .route('/resend/otp')
-    .get(authLimiter, authMiddleware.protectOtp, authController.resendUserOtp)
+    .get(authLimiter, authMiddleware.protectOtpForResend, authController.resendUserOtp)
 
 Router
     .route('/otp-verification')

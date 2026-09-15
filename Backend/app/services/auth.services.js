@@ -188,6 +188,24 @@ const refreshUserToken = async (email, refreshToken) => {
     return refreshToken;
 };
 
+const isEmailOrUsernameTaken = async (email, username) => {
+    if (!email && !username) {
+        return false;
+    }
+
+    const existing = await prisma.user.findFirst({
+        where: {
+            OR: [
+                ...(email ? [{ email }] : []),
+                ...(username ? [{ username }] : [])
+            ]
+        },
+        select: { id: true }
+    });
+
+    return !!existing;
+};
+
 const verifyUsername = async (username) => {
     if (!username) {
         return false;
@@ -328,5 +346,6 @@ module.exports = {
     createAdmin,
     getUserById,
     verifyUsername,
+    isEmailOrUsernameTaken,
     createAccountByGoogleService
 };

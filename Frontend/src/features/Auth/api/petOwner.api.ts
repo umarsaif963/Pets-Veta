@@ -2,10 +2,11 @@ import type { PetOwnerFormData } from "../schemas/petowner.schema";
 import { api, handleAxiosError } from "@/features/api interface/axios.interface";
 
 type Data = {
-    id: string,
+    id?: string,
     email: string,
     username: string,
-    role: string
+    role: string,
+    expiresIn?: number
 }
 
 export type ApiResponse = {

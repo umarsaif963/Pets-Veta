@@ -1,10 +1,11 @@
 import { api, handleAxiosError } from "@/features/api interface/axios.interface";
 
 type Data = {
-    id: string,
+    id?: string,
     email: string,
     role: string,
-    username: string
+    username: string,
+    expiresIn?: number
 }
 
 export type ApiResponse = {

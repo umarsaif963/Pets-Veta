@@ -3,13 +3,12 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { AxiosError } from "axios";
-
+import { AtSign, CircleUserRound, Eye, EyeOff, Lock, Mail } from "lucide-react";
 
 import {
   petOwnerSchema,
   type PetOwnerFormData,
 } from "../schemas/petowner.schema";
-
 
 import { usePetOwnerHook } from "../hooks/usePetOwnerAccount";
 import type {
@@ -20,7 +19,7 @@ import type {
 const PawIcon = () => (
   <svg
     viewBox="0 0 64 64"
-    className="h-8 w-8 fill-[#178f95]"
+    className="h-8 w-8 fill-[#009f9d]"
     xmlns="http://www.w3.org/2000/svg"
   >
     <circle cx="18" cy="22" r="7" />
@@ -32,11 +31,6 @@ const PawIcon = () => (
   </svg>
 );
 
-// interface RegistrationResponse {
-//   success: boolean;
-//   message: string;
-// }
-
 export default function PetOwnerForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] =
@@ -44,10 +38,7 @@ export default function PetOwnerForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<string>("");
 
-
-
   const { mutate: createAccount } = usePetOwnerHook({
-
     onSuccess: (response: ApiResponse) => {
       console.log("Role is ", response);
       if (response.success) {
@@ -64,11 +55,8 @@ export default function PetOwnerForm() {
       } else {
         setIsError("Something went wrong. Please try again.");
       }
-
-
-    }
-
-  })
+    },
+  });
 
   const {
     register,
@@ -80,10 +68,8 @@ export default function PetOwnerForm() {
   });
 
   const onSubmit = async (data: PetOwnerFormData) => {
-
-    setIsError('');
+    setIsError("");
     createAccount(data);
-
   };
 
   const handleGoogleLogin = async () => {
@@ -120,56 +106,44 @@ export default function PetOwnerForm() {
   return (
     <div className="w-full">
       {/* Logo */}
-      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[22px] bg-[#dff3f2] shadow-[0_12px_28px_rgba(23,143,149,0.18)]">
+      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#d9f7f6] shadow-[0_10px_22px_rgba(0,159,157,0.22)]">
         <PawIcon />
       </div>
 
       {/* Heading */}
-      <div className="mb-5 text-center">
-        <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.04em] text-[#101b3d] md:text-[30px]">
+      <div className="mb-6 text-center">
+        <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.04em] text-[#07182c] md:text-[28px]">
           Create Account
         </h1>
 
-        <p className="mt-1.5 text-[13px] font-medium text-[#6d7891]">
+        <p className="mt-2 text-[13px] font-medium text-slate-500">
           Join PetsVeta and care for your pets
         </p>
       </div>
 
       {isError && (
-        <p className="mb-3 rounded-xl bg-red-50 px-4 py-2 text-center text-[13px] font-bold text-red-600">
+        <p className="mb-4 rounded-xl border border-[#FBD5D5] bg-[#FEF2F2] px-4 py-3 text-center text-[13px] font-semibold text-[#d64545]">
           {isError}
         </p>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
+      <form onSubmit={handleSubmit(onSubmit)} autoComplete="off" className="space-y-4">
         {/* Full Name + Username */}
-        <div className="grid gap-3.5 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <FormField
             label="Full Name"
             placeholder="Enter full name"
             error={errors.fullName?.message}
-            icon={
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 12a5 5 0 100-10 5 5 0 000 10zM3 22a9 9 0 0118 0H3z"
-              />
-            }
-            inputProps={register("fullName")}
+            icon={<CircleUserRound className="h-5 w-5" />}
+            inputProps={{ autoComplete: "off", ...register("fullName") }}
           />
 
           <FormField
             label="Username"
             placeholder="Choose username"
             error={errors.username?.message}
-            icon={
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-              />
-            }
-            inputProps={register("username")}
+            icon={<AtSign className="h-5 w-5" />}
+            inputProps={{ autoComplete: "off", ...register("username") }}
           />
         </div>
 
@@ -179,14 +153,8 @@ export default function PetOwnerForm() {
           type="email"
           placeholder="example@gmail.com"
           error={errors.email?.message}
-          icon={
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-18 8h18a2 2 0 002-2V6a2 2 0 00-2-2H3a2 2 0 00-2 2v8a2 2 0 002 2z"
-            />
-          }
-          inputProps={register("email")}
+          icon={<Mail className="h-5 w-5" />}
+          inputProps={{ autoComplete: "off", ...register("email") }}
         />
 
         {/* Password */}
@@ -196,7 +164,7 @@ export default function PetOwnerForm() {
           showPassword={showPassword}
           onTogglePassword={() => setShowPassword((prev) => !prev)}
           error={errors.password?.message}
-          inputProps={register("password")}
+          inputProps={{ autoComplete: "new-password", ...register("password") }}
         />
 
         {/* Confirm Password */}
@@ -206,39 +174,71 @@ export default function PetOwnerForm() {
           showPassword={showConfirmPassword}
           onTogglePassword={() => setShowConfirmPassword((prev) => !prev)}
           error={errors.confirmPassword?.message}
-          inputProps={register("confirmPassword")}
+          inputProps={{ autoComplete: "new-password", ...register("confirmPassword") }}
         />
 
         {/* Submit Button */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-1 flex h-[48px] w-full items-center justify-center gap-3 rounded-2xl bg-[#15265d] text-[15px] font-extrabold text-white shadow-[0_16px_30px_rgba(21,38,93,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#101f4d] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-1 flex h-[52px] w-full items-center justify-center gap-3 rounded-xl bg-[#009f9d] text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(0,159,157,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#008f8d] hover:shadow-[0_16px_32px_rgba(0,159,157,0.38)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
-          {isSubmitting ? "Creating Account..." : "Sign Up"}
-          {!isSubmitting && <span className="text-lg leading-none">→</span>}
+          {isSubmitting ? (
+            <span className="flex items-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              Creating Account...
+            </span>
+          ) : (
+            <>
+              Sign Up
+              <span className="text-lg leading-none">→</span>
+            </>
+          )}
         </button>
+
+        {/* Divider */}
+        <div className="flex items-center gap-4 pt-1">
+          <span className="h-px flex-1 bg-[#E8EDF4]" />
+          <span className="text-[12px] font-bold uppercase tracking-[0.12em] text-slate-400">
+            or
+          </span>
+          <span className="h-px flex-1 bg-[#E8EDF4]" />
+        </div>
 
         {/* Google Login */}
         <button
           type="button"
           onClick={handleGoogleLogin}
           disabled={isGoogleLoading}
-          className="flex h-[48px] w-full items-center justify-center gap-3 rounded-2xl border border-[#d8dde8] bg-white text-[14px] font-extrabold text-[#17233f] shadow-[0_4px_12px_rgba(23,143,149,0.08)] transition-all duration-300 hover:border-[#178f95] hover:bg-[#f8fbfb] disabled:cursor-not-allowed disabled:opacity-60"
+          className="flex h-[52px] w-full items-center justify-center gap-3 rounded-xl border border-[#E2E8F0] bg-white text-[15px] font-bold text-[#07182c] transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <img
-            src="https://www.svgrepo.com/show/355037/google.svg"
-            className="h-5 w-5"
-            alt="Google"
-          />
+          <svg viewBox="0 0 48 48" className="h-5 w-5" aria-hidden="true">
+            <path
+              fill="#FFC107"
+              d="M43.6 20.1H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"
+            />
+            <path
+              fill="#FF3D00"
+              d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"
+            />
+            <path
+              fill="#4CAF50"
+              d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"
+            />
+            <path
+              fill="#1976D2"
+              d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4 5.7l6.2 5.2C36.9 42.6 44 38 44 24c0-1.3-.1-2.6-.4-3.9z"
+            />
+          </svg>
+
           {isGoogleLoading ? "Connecting..." : "Continue with Google"}
         </button>
 
-        <p className="pt-1 text-center text-[13px] font-medium text-[#7b8497]">
+        <p className="pt-1 text-center text-[13px] font-medium text-slate-500">
           Already have an account?{" "}
           <a
             href="/login"
-            className="font-extrabold text-[#178f95] transition hover:text-[#0f7075]"
+            className="font-bold text-[#009f9d] transition hover:text-[#008f8d]"
           >
             Sign in
           </a>
@@ -256,33 +256,31 @@ const FormField = ({
   icon,
   inputProps,
 }: PetOwnerFormFieldProps) => {
+  const borderClass = error
+    ? "border-[#e4666b] focus-within:border-[#e4666b] focus-within:ring-[#e4666b]/15"
+    : "border-[#E2E8F0] focus-within:border-[#009f9d] focus-within:ring-[#009f9d]/15";
+
   return (
     <div>
-      <label className="mb-1.5 block text-[13px] font-bold text-[#17233f]">
+      <label className="mb-1.5 block text-[13px] font-bold text-[#07182c]">
         {label}
       </label>
 
-      <div className="flex h-[46px] items-center rounded-2xl border border-[#d8dde8] bg-white/70 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 focus-within:border-[#178f95] focus-within:shadow-[0_0_0_4px_rgba(23,143,149,0.12)]">
-        <svg
-          className="mr-3 h-5 w-5 text-[#7b8497]"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          {icon}
-        </svg>
+      <div
+        className={`flex h-[50px] items-center rounded-xl border bg-white pl-4 pr-4 shadow-[0_1px_2px_rgba(7,24,44,0.05)] outline-none transition-all duration-300 focus-within:ring-4 ${borderClass}`}
+      >
+        <span className="mr-3 shrink-0 text-slate-400">{icon}</span>
 
         <input
           type={type}
           placeholder={placeholder}
-          className="h-full w-full bg-transparent text-[14px] font-medium text-[#17233f] outline-none placeholder:text-[#8993a6]"
+          className="h-full w-full bg-transparent text-[14px] font-medium text-[#07182c] outline-none placeholder:text-slate-400"
           {...inputProps}
         />
       </div>
 
       {error && (
-        <p className="mt-1.5 text-[12px] font-semibold text-red-600">
+        <p className="mt-1.5 text-[12px] font-semibold text-[#e4666b]">
           {error}
         </p>
       )}
@@ -298,86 +296,46 @@ const PasswordField = ({
   error,
   inputProps,
 }: PetOwnerPasswordFieldProps) => {
+  const borderClass = error
+    ? "border-[#e4666b] focus-within:border-[#e4666b] focus-within:ring-[#e4666b]/15"
+    : "border-[#E2E8F0] focus-within:border-[#009f9d] focus-within:ring-[#009f9d]/15";
+
   return (
     <div>
-      <label className="mb-1.5 block text-[13px] font-bold text-[#17233f]">
+      <label className="mb-1.5 block text-[13px] font-bold text-[#07182c]">
         {label}
       </label>
 
-      <div className="flex h-[46px] items-center rounded-2xl border border-[#d8dde8] bg-white/70 px-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-all duration-300 focus-within:border-[#178f95] focus-within:shadow-[0_0_0_4px_rgba(23,143,149,0.12)]">
-        <svg
-          className="mr-3 h-5 w-5 text-[#7b8497]"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M12 11c.828 0 1.5.672 1.5 1.5S12.828 14 12 14s-1.5-.672-1.5-1.5S11.172 11 12 11z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M17 11V8a5 5 0 00-10 0v3M6 11h12v9H6z"
-          />
-        </svg>
+      <div
+        className={`flex h-[50px] items-center rounded-xl border bg-white pl-4 pr-2 shadow-[0_1px_2px_rgba(7,24,44,0.05)] outline-none transition-all duration-300 focus-within:ring-4 ${borderClass}`}
+      >
+        <span className="mr-3 shrink-0 text-slate-400">
+          <Lock className="h-5 w-5" />
+        </span>
 
         <input
           type={showPassword ? "text" : "password"}
           placeholder={placeholder}
-          className="h-full w-full bg-transparent text-[14px] font-medium text-[#17233f] outline-none placeholder:text-[#8993a6]"
+          className="h-full w-full bg-transparent text-[14px] font-medium text-[#07182c] outline-none placeholder:text-slate-400"
           {...inputProps}
         />
 
         <button
           type="button"
           onClick={onTogglePassword}
-          className="ml-3 text-[#7b8497] transition hover:text-[#178f95]"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-slate-400 transition hover:text-[#009f9d]"
           aria-label={showPassword ? "Hide password" : "Show password"}
         >
           {showPassword ? (
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M10.58 10.58A2 2 0 0012 14a2 2 0 001.42-3.42"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9.88 4.24A9.77 9.77 0 0112 4c6 0 9.75 8 9.75 8a17.9 17.9 0 01-2.19 3.2M6.61 6.61C3.73 8.48 2.25 12 2.25 12s3.75 8 9.75 8a9.9 9.9 0 004.18-.92"
-              />
-            </svg>
+            <EyeOff className="h-5 w-5" />
           ) : (
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12z"
-              />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
+            <Eye className="h-5 w-5" />
           )}
         </button>
       </div>
 
       {error && (
-        <p className="mt-1.5 text-[12px] font-semibold text-red-600">
+        <p className="mt-1.5 text-[12px] font-semibold text-[#e4666b]">
           {error}
         </p>
       )}

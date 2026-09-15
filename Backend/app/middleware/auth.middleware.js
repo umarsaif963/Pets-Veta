@@ -81,8 +81,31 @@ const protectOtp = async (req, res, next) => {
         return res.status(500).json({ success: false, err: error.message })
     }
 }
+
+// Like protectOtp, but ignores an expired token so the user can still request
+// a fresh code after the OTP has lapsed. The signature is still validated.
+const protectOtpForResend = async (req, res, next) => {
+    try {
+        const otpToken = req.cookies.otpToken;
+
+        if (!otpToken) {
+            return res.status(400).json({ err: 'Invalid Cookie' })
+        }
+        const decoded = jwt.verify(otpToken, process.env.JWT_OTP_SECRET, { ignoreExpiration: true });
+        if (!decoded) {
+            return res.status(400).json({ err: 'Invalid Decoding in auth middleware' })
+        }
+        req.user = decoded;
+        next();
+
+    } catch (error) {
+        console.log("Protect Otp Resend Err", error.message);
+        return res.status(401).json({ success: false, err: "OTP session invalid. Please start again." })
+    }
+}
 module.exports = {
     protect,
     protectRefresh,
-    protectOtp
+    protectOtp,
+    protectOtpForResend
 }

@@ -21,7 +21,7 @@ export const usePetOwnerHook = (options: UseMutationOptions<ApiResponse, AxiosEr
         onSuccess: (response, variables, onMutateResult, context) => {
             console.log("Account Success", response)
             if (response?.success) {
-                navigate('/verify-otp', { state: { from: 'signup' } })
+                navigate('/verify-otp', { state: { from: 'signup', expiresIn: response?.data?.expiresIn } })
             }
             options.onSuccess?.(response, variables, onMutateResult, context)
 
