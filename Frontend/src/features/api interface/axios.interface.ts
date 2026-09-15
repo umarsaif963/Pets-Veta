@@ -32,7 +32,10 @@ api.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url?.includes("/auth/refresh/token")
+      !originalRequest.url?.includes("/auth/refresh/token") &&
+      !originalRequest.url?.includes("/auth/otp-verification") &&
+      !originalRequest.url?.includes("/auth/resend/otp") &&
+      !originalRequest.url?.includes("/auth/password-resets")
     ) {
       originalRequest._retry = true;
 

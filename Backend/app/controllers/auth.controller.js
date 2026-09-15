@@ -116,14 +116,6 @@ const createDoctorAccount = catchAsync(async (req, res) => {
     const hashedOtp = await bcrypt.hash(otpCode, 12);
     await authServices.saveUserOtp(email, hashedOtp);
 
-    authUtils.sendOtp(email, otpCode)
-        .then((mesg) => {
-            console.log("otp mesg", mesg)
-        })
-        .catch((err) => {
-            console.log("Otp error", err)
-        })
-
     const payload = {
         id: newDoctor.id,
         email: newDoctor.email
@@ -140,6 +132,13 @@ const createDoctorAccount = catchAsync(async (req, res) => {
     const otpToken = jwtSign(payload, Token_Types.OTP);
 
     res.cookie('otpToken', otpToken, cookiesOptions);
+
+    try {
+        const info = await authUtils.sendOtp(email, otpCode);
+        console.log("OTP sent to", email, info?.messageId);
+    } catch (err) {
+        console.error("Failed to send OTP email:", err?.message);
+    }
 
     return sendResponse(res, 201, "Success", newDoctor);
 
@@ -176,13 +175,6 @@ const createPetOwnerAccount = catchAsync(async (req, res) => {
     const otpCode = authUtils.otpGenerator();
     const hashedOtp = await bcrypt.hash(otpCode, 12);
     await authServices.saveUserOtp(email, hashedOtp);
-    authUtils.sendOtp(email, otpCode)
-        .then((mesg) => {
-            console.log("Otp Mesg", mesg)
-        })
-        .catch((err) => {
-            console.log("Error is sending the OTP");
-        })
 
     const payload = {
         id: newPetOwner.id,
@@ -193,6 +185,15 @@ const createPetOwnerAccount = catchAsync(async (req, res) => {
     const otpToken = jwtSign(payload, Token_Types.OTP);
 
     res.cookie('otpToken', otpToken, cookiesOptions);
+
+    try {
+        const info = await authUtils.sendOtp(email, otpCode);
+        console.log("OTP sent to", email, info?.messageId);
+    } catch (err) {
+        // The otpToken cookie is already set above, so the user can still
+        // request a fresh code via the "Resend OTP" flow.
+        console.error("Failed to send OTP email:", err?.message);
+    }
 
     return sendResponse(res, 200, "Success", validPetOwner);
 

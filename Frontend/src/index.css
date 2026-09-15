@@ -34,3 +34,11 @@ html.lenis body {
 .lenis.lenis-scrolling iframe {
     pointer-events: none;
 }
+
+html:has(.login-page) {
+    scrollbar-width: none;
+}
+
+html:has(.login-page)::-webkit-scrollbar {
+    display: none;
+}

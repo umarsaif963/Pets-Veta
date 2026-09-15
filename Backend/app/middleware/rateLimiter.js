@@ -37,6 +37,21 @@ const adminLimiter = rateLimit({
     }
 })
 
+// Refresh tokens are renewed on every app load and periodically during a
+// session, so they need a much more generous budget than signup/login or the
+// client can end up rate-limited (429) and logged out for no reason.
+const refreshLimiter = rateLimit({
+    store: createRedisStore('rl:refresh:'),
+    windowMs: 15 * 60 * 1000,
+    limit: 60,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: {
+        status: 429,
+        error: "Too many refresh attempts. Please try again shortly."
+    }
+});
+
 const petOwnerLimiter = rateLimit({
     store: createRedisStore('rl:petOwner:'),
     windowMs: 10 * 60 * 1000,
@@ -77,5 +92,6 @@ module.exports = {
     globalUserLimiter,
     authLimiter,
     petOwnerLimiter,
-    doctorLimiter
+    doctorLimiter,
+    refreshLimiter
 }

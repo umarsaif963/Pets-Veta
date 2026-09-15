@@ -178,7 +178,7 @@ const sendOtp = async (email, otpCode) => {
   } catch (err) {
     console.error("Error while sending mail:", err);
 
-    throw new AppError(`Error is Sending Mail to ${email} ${error.message}`);
+    throw new AppError(`Error is Sending Mail to ${email} ${err.message}`);
   }
 }
 

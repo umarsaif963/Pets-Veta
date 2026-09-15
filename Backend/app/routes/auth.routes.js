@@ -3,7 +3,7 @@ const Router = express.Router();
 const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middleware/auth.middleware');
 const upload = require('../config/multer.config');
-const { authLimiter } = require('../middleware/rateLimiter');
+const { authLimiter, refreshLimiter } = require('../middleware/rateLimiter');
 const { validateRequest } = require('../middleware/zod.middleware')
 const { doctorSchema, petOwnerSchema, loginSchema, resetPasswordSchema, forgotPasswordSchema } = require('../schema/zod.schema')
 
@@ -45,7 +45,7 @@ Router
 
 Router
     .route('/refresh/token')
-    .get(authLimiter, authMiddleware.protectRefresh, authController.refreshTokenController)
+    .get(refreshLimiter, authMiddleware.protectRefresh, authController.refreshTokenController)
 
 Router
     .route('/verify/email')

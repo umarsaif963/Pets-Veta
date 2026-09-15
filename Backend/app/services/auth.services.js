@@ -58,24 +58,33 @@ const createPetOwner = async (petOwnerData) => {
         return false;
     }
 
-    const newPetOwner = await prisma.user.create({
-        data: {
-            fullName: petOwnerData.fullName,
-            username: petOwnerData.username,
-            email: petOwnerData.email,
-            password: petOwnerData.hashedPassword,
-            userRole: {
-                create: {
-                    role: 'PetOwner'
+    try {
+        const newPetOwner = await prisma.user.create({
+            data: {
+                fullName: petOwnerData.fullName,
+                username: petOwnerData.username,
+                email: petOwnerData.email,
+                password: petOwnerData.hashedPassword,
+                userRole: {
+                    create: {
+                        role: 'PetOwner'
+                    }
                 }
+            },
+            include: {
+                userRole: true
             }
-        },
-        include: {
-            userRole: true
-        }
-    });
+        });
 
-    return newPetOwner;
+        return newPetOwner;
+    } catch (error) {
+        // Unique constraint race (email/username taken between the check above
+        // and this insert). P2002 is the Prisma code for a unique violation.
+        if (error?.code === 'P2002') {
+            return false;
+        }
+        throw error;
+    }
 };
 
 const createAccountByGoogleService = async (code) => {

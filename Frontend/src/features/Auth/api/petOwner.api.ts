@@ -28,7 +28,7 @@ export const createPetOwnerAccount = async (data: PetOwnerFormData): Promise<Api
 
 export const getGoogleAuthUrlApi = async () => {
     try {
-        const response = await api.get("http://localhost:8000/api/v1/auth/google/url");
+        const response = await api.get("/auth/google/url");
         return response.data
     }
     catch (error) {

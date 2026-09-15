@@ -3,14 +3,12 @@ import { type PetOwnerFormData } from '../schemas/petowner.schema'
 import { createPetOwnerAccount } from '../api/petOwner.api'
 import { type ApiResponse } from '../api/petOwner.api'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from './authhook'
 import { AxiosError } from 'axios'
 import type { ApiErrorResponse } from '../types/auth.types'
 
 
 export const usePetOwnerHook = (options: UseMutationOptions<ApiResponse, AxiosError<ApiErrorResponse>, PetOwnerFormData>) => {
 
-    const { setUser, setIsAuthenticateUser } = useAuth();
     const navigate = useNavigate();
 
 
@@ -20,18 +18,18 @@ export const usePetOwnerHook = (options: UseMutationOptions<ApiResponse, AxiosEr
 
         ...options,
 
-        onSuccess: (response) => {
+        onSuccess: (response, variables, onMutateResult, context) => {
             console.log("Account Success", response)
-            setUser(response);
-            setIsAuthenticateUser(true);
             if (response?.success) {
-                navigate('/verify-otp')
+                navigate('/verify-otp', { state: { from: 'signup' } })
             }
+            options.onSuccess?.(response, variables, onMutateResult, context)
 
         },
 
-        onError: (error) => {
+        onError: (error, variables, onMutateResult, context) => {
             console.log("Account Error ", error.message)
+            options.onError?.(error, variables, onMutateResult, context)
 
         }
     })

@@ -35,7 +35,7 @@ export default function ForgotPasswordForm() {
   const { mutate: forgotPassword, isPending } = useForgotPassword({
     onSuccess: () => {
       reset();
-      navigate("/verify-otp");
+      navigate("/verify-otp", { state: { from: "forgot-password" } });
     },
     onError: (error) => {
       console.log(error);

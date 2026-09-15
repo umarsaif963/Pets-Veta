@@ -75,7 +75,10 @@ const protectOtp = async (req, res, next) => {
 
     } catch (error) {
         console.log("Protect Otp Err", error.message);
-        return res.status(500).json({ tokenErr: error.message })
+        if (error.name === "TokenExpiredError" || error.name === "JsonWebTokenError") {
+            return res.status(401).json({ success: false, err: "OTP session expired or invalid. Please request a new code." });
+        }
+        return res.status(500).json({ success: false, err: error.message })
     }
 }
 module.exports = {

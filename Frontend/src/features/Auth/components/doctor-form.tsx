@@ -56,7 +56,9 @@ export default function DoctorForm() {
       }
     },
     onError: (error) => {
-      setErrorMessage(error.message);
+      const serverMessage = (error as { response?: { data?: { message?: string } } })
+        ?.response?.data?.message;
+      setErrorMessage(serverMessage || error.message || "Failed to create account");
       console.log("Error is Doctor", error)
     }
   })

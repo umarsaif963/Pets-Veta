@@ -12,14 +12,16 @@ const fileFilter = (req, file, cb) => {
         "video/webm",
     ];
 
-    const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes];
+    const allowedDocumentTypes = ["application/pdf"];
+
+    const allowedTypes = [...allowedImageTypes, ...allowedVideoTypes, ...allowedDocumentTypes];
 
     if (allowedTypes.includes(file.mimetype)) {
         cb(null, true);
     } else {
         cb(
             new Error(
-                "Invalid file type. Only images (PNG, JPEG, WEBP) and videos (MP4, MOV, AVI, WEBM) are allowed!"
+                "Invalid file type. Only images (PNG, JPEG, WEBP), videos (MP4, MOV, AVI, WEBM) and PDF documents are allowed!"
             ),
             false
         );

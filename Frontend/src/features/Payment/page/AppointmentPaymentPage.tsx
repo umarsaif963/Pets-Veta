@@ -5,7 +5,8 @@ import { loadStripe } from "@stripe/stripe-js";
 import { createAppointmentPaymentIntent, releaseAppointmentHoldApi } from "../api/payment.api";
 import AppointmentPaymentForm from "../components/AppointmentPayment";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+const stripePromise = publishableKey ? loadStripe(publishableKey) : Promise.resolve(null);
 
 const AppointmentPaymentPage = () => {
   const [searchParams] = useSearchParams();
@@ -144,7 +145,7 @@ const AppointmentPaymentPage = () => {
           </div>
         )}
 
-        {clientSecret && appointmentId && (
+        {clientSecret && appointmentId && (publishableKey ? (
           <Elements
             stripe={stripePromise}
             options={{
@@ -154,7 +155,11 @@ const AppointmentPaymentPage = () => {
           >
             <AppointmentPaymentForm appointmentId={appointmentId} />
           </Elements>
-        )}
+        ) : (
+          <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm font-semibold text-amber-700">
+            Payment unavailable: Stripe is not configured. Set VITE_STRIPE_PUBLISHABLE_KEY in your environment.
+          </p>
+        ))}
       </section>
     </main>
   );

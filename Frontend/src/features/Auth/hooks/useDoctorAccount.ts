@@ -2,10 +2,8 @@ import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
 import { createDoctorAccount } from '../api/doctor.api';
 import { type ApiResponse } from '../api/doctor.api';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from './authhook';
 
 export const useDoctorAccountHook = (options: UseMutationOptions<ApiResponse, Error, FormData> = {}) => {
-    const { setUser, setIsAuthenticateUser } = useAuth();
     const navigate = useNavigate();
 
     return useMutation({
@@ -13,12 +11,9 @@ export const useDoctorAccountHook = (options: UseMutationOptions<ApiResponse, Er
         ...options,
 
         onSuccess: (response, variables, onMutateResult, context) => {
-            setUser(response);
-            setIsAuthenticateUser(true);
-
             if (response.success) {
                 console.log("Account Success", response);
-                navigate("/verify-otp", { replace: true });
+                navigate("/verify-otp", { replace: true, state: { from: 'signup' } });
             }
 
             if (options.onSuccess) {

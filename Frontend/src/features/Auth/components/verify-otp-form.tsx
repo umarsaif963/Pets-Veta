@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Button from "../../../shared/components/Button/Button";
 import BackButton from "../../../shared/components/Button";
 import { useOtp } from "../hooks/useOtp";
@@ -13,6 +13,11 @@ import {
 
 export default function VerifyOtpForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const otpFlow = (location.state as { from?: string } | null)?.from;
+
+  const successPath = otpFlow === "forgot-password" ? "/reset-password" : "/";
 
   const [timer, setTimer] = useState(360);
 
@@ -40,7 +45,7 @@ export default function VerifyOtpForm() {
 
   const { mutate: verifyOtp, isPending: isVerifying } = useOtp({
     onSuccess: () => {
-      navigate("/");
+      navigate(successPath);
     },
     onError: (error) => {
       console.log("==========>>", error);

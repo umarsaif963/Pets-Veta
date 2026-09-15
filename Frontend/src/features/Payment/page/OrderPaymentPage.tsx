@@ -7,7 +7,8 @@ import { createOrderPaymentIntentApi } from "../api/payment.api";
 import OrderPaymentForm from "../components/OrderPaymentForm";
 import { api } from "@/features/api interface/axios.interface";
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
+const stripePromise = publishableKey ? loadStripe(publishableKey) : Promise.resolve(null);
 
 const OrderPaymentPage = () => {
     const [searchParams] = useSearchParams();
@@ -169,7 +170,7 @@ const OrderPaymentPage = () => {
                     </div>
                 )}
 
-                {clientSecret && orderId && (
+                {clientSecret && orderId && (publishableKey ? (
                     <Elements
                         stripe={stripePromise}
                         options={{
@@ -179,7 +180,11 @@ const OrderPaymentPage = () => {
                     >
                         <OrderPaymentForm orderId={orderId} />
                     </Elements>
-                )}
+                ) : (
+                    <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm font-semibold text-amber-700">
+                        Payment unavailable: Stripe is not configured. Set VITE_STRIPE_PUBLISHABLE_KEY in your environment.
+                    </p>
+                ))}
             </section>
         </main>
     );
