@@ -12,7 +12,7 @@ const getPostLoginPath = (role?: string) => {
     }
 
     if (role === 'PetOwner' || role === 'Seller') {
-        return '/choose-dashboard';
+        return '/';
     }
 
     return '/';
