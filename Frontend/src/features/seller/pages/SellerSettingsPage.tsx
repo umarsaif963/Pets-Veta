@@ -13,7 +13,6 @@ import { logoutUserApi } from "@/features/Auth/api/loginuser.api";
 import { useAuth } from "@/features/Auth/hooks/authhook";
 import Button from "@/shared/components/Button/Button";
 import Card from "@/shared/components/Card/Card";
-import PageBackButton from "@/shared/components/BackButton/PageBackButton";
 import SellerHeader from "../components/SellerHeader";
 import SellerSidebar from "../components/SellerSidebar";
 

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Loader2, AlertCircle, CheckCircle2, ShoppingBag, ArrowRight } from "lucide-react";
+import { Loader2, AlertCircle, CheckCircle2, ShoppingBag } from "lucide-react";
 import { getOrderPaymentStatusApi } from "../api/payment.api";
 
 type OrderStatusResponse = {
@@ -29,9 +29,7 @@ const OrderPaymentSuccessPage = () => {
     const orderId = searchParams.get("orderId");
 
     const [order, setOrder] = useState<OrderStatusResponse | null>(null);
-    const [isChecking, setIsChecking] = useState(true);
     const [error, setError] = useState("");
-    const [attempts, setAttempts] = useState(0);
 
     const isConfirmed =
         order?.status === "CONFIRMED" && order?.paymentStatus === "SUCCEEDED";
@@ -43,7 +41,6 @@ const OrderPaymentSuccessPage = () => {
     useEffect(() => {
         if (!orderId) {
             setError("Order ID is missing.");
-            setIsChecking(false);
             return;
         }
 
@@ -53,7 +50,6 @@ const OrderPaymentSuccessPage = () => {
         const fetchStatus = async () => {
             try {
                 currentAttempts += 1;
-                setAttempts(currentAttempts);
 
                 const result = await getOrderPaymentStatusApi(orderId);
 
@@ -73,12 +69,10 @@ const OrderPaymentSuccessPage = () => {
                     data.status === "CANCELLED";
 
                 if (confirmed || failed || currentAttempts >= 15) {
-                    setIsChecking(false);
                     if (intervalId) window.clearInterval(intervalId);
                 }
             } catch (err: any) {
                 setError(err?.message || "Something went wrong.");
-                setIsChecking(false);
                 if (intervalId) window.clearInterval(intervalId);
             }
         };

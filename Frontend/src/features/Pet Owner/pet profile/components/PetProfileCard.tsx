@@ -10,15 +10,6 @@ import type {
 
 import PetActionsMenu from "./PetActionsMenu";
 
-const categoryImages: Record<PetCategory, string> = {
-  DOG: "https://images.unsplash.com/photo-1568572933382-74d440642117?auto=format&fit=crop&w=700&q=80",
-  CAT: "https://images.unsplash.com/photo-1574158622682-e40e69881006?auto=format&fit=crop&w=700&q=80",
-  REPTILE:
-    "https://images.unsplash.com/photo-1504450874802-0ba2bcd9b5ae?auto=format&fit=crop&w=700&q=80",
-  OTHER:
-    "https://images.unsplash.com/photo-1552728089-57bdde30beb3?auto=format&fit=crop&w=700&q=80",
-};
-
 const categoryStyles: Record<PetCategory, string> = {
   DOG: "bg-cyan-50 text-cyan-700",
   CAT: "bg-orange-50 text-orange-600",

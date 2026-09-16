@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    ShoppingBag,
     Loader2,
     AlertCircle,
     Inbox,
@@ -13,7 +12,6 @@ import {
     Tag,
     CheckCircle2,
     XCircle,
-    HelpCircle,
 } from "lucide-react";
 
 import DashboardSidebar from "../components/DashboardSidebar";

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useSearchParams, useNavigation } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   FaBookmark,
@@ -8,15 +8,10 @@ import {
   FaRegHeart,
   FaShoppingCart,
   FaStore,
-  FaUsers,
-  FaPlusCircle,
-  FaPencilAlt,
-  FaCreditCard, 
 } from "react-icons/fa";
 
 import Button from "@/shared/components/Button/Button";
 import Card from "@/shared/components/Card/Card";
-import PageBackButton from "@/shared/components/BackButton/PageBackButton";
 import SellerHeader from "../components/SellerHeader";
 import SellerSidebar from "../components/SellerSidebar";
 

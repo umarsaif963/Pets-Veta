@@ -8,11 +8,10 @@ import {
   Search,
   Stethoscope,
 } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import DoctorFilter from "./DoctorFilter";
 import { PaginationButton } from "../PaginationButton";
 import DoctorRequestCard from "./DoctorRequestCard";
-import { useDebounce } from "@/shared/hooks/useDebounce";
 import {
   PendingDoctors,
   ApprovedDoctors,
@@ -32,23 +31,6 @@ const DoctorRequests = () => {
   const [totalDoctors, setTotalDoctors] = useState<number>(0);
   const [doctorRequestProceed, setDoctorRequestProceed] = useState<boolean>(false);
   const [doctorList, setDoctorList] = useState<ApiPayload | undefined>(undefined);
-
-  const debouncedSearchQuery = useDebounce(searchQuery, 400);
-
-  const filteredDoctors = useMemo(() => {
-    if (!doctorList?.doctors) return [];
-    const query = debouncedSearchQuery.trim().toLowerCase();
-    if (!query) return doctorList.doctors;
-
-    return doctorList.doctors.filter((doctor) => {
-      const nameMatch = doctor.user?.fullName?.toLowerCase().includes(query);
-      const emailMatch = doctor.user?.email?.toLowerCase().includes(query);
-      const phoneMatch = doctor.user?.phone?.toLowerCase().includes(query);
-      const specMatch = doctor.specialization?.toLowerCase().includes(query);
-
-      return nameMatch || emailMatch || phoneMatch || specMatch;
-    });
-  }, [doctorList?.doctors, debouncedSearchQuery]);
 
   const [adminDoctorStats, setAdminDoctorStats] = useState<DoctorStats | undefined>(undefined);
   const [page, setPage] = useState<number>(1);

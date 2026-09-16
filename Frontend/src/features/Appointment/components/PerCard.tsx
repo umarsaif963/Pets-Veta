@@ -5,29 +5,29 @@ import Button from "@/shared/components/Button/Button";
 interface PetCardProps {
     id: string;
     name: string;
-    breed: string;
-    category: string;
-    age: string | number;
+    breed?: string;
+    age?: string | number;
     photos?: any[]; // Dynamic handling for the photo array from backend
+    photoUrl?: string;
     onSelect: (name: string, photoUrl: string | undefined, id: string) => void;
 }
 
-const PetCard = ({ id, name, breed, category, age, photos, onSelect }: PetCardProps) => {
-
+const PetCard = ({ id, name, breed, age, photos, photoUrl, onSelect }: PetCardProps) => {
 
     const resolvePhotoUrl = (): string | undefined => {
-        if (!photos || photos.length === 0) return undefined;
-        const firstPhoto = photos[0];
-        if (typeof firstPhoto === "string") return firstPhoto;
-        if (typeof firstPhoto === "object" && firstPhoto !== null) {
-            if ("url" in firstPhoto) {
-                return (firstPhoto as { url: string }).url;
-            }
-            if ("publicUrl" in firstPhoto) {
-                return (firstPhoto as { publicUrl: string }).publicUrl; // Resolve DB publicUrl
+        if (photos && photos.length > 0) {
+            const firstPhoto = photos[0];
+            if (typeof firstPhoto === "string") return firstPhoto;
+            if (typeof firstPhoto === "object" && firstPhoto !== null) {
+                if ("url" in firstPhoto) {
+                    return (firstPhoto as { url: string }).url;
+                }
+                if ("publicUrl" in firstPhoto) {
+                    return (firstPhoto as { publicUrl: string }).publicUrl; // Resolve DB publicUrl
+                }
             }
         }
-        return undefined;
+        return photoUrl;
     };
 
     const currentPhotoUrl = resolvePhotoUrl();
@@ -53,9 +53,11 @@ const PetCard = ({ id, name, breed, category, age, photos, onSelect }: PetCardPr
                 {/* Pet Info */}
                 <div>
                     <h4 className="text-base font-black text-slate-800">{name}</h4>
-                    <p className="text-xs font-semibold text-slate-400 mt-0.5">
-                        {breed} • {age} {Number(age) === 1 ? "Year" : "Years"} old
-                    </p>
+                    {breed && age !== undefined && (
+                        <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                            {breed} • {age} {Number(age) === 1 ? "Year" : "Years"} old
+                        </p>
+                    )}
                 </div>
             </div>
 

@@ -1,6 +1,5 @@
 import { api, handleAxiosError } from "@/features/api interface/axios.interface";
 import type { PetFormData } from "../schemas/pet.schema";
-import type { PetIssueReportFormData } from "../schemas/petIssueReport.schema";
 
 export interface PetResponse {
   id: string;
@@ -39,9 +38,13 @@ export const submitPetData = async (data: PetFormData & { petOwnerId: string }):
   }
 };
 export const submitPetIssue = async (payload: {
-  appointmentId: string;
   petId: string;
   issue: string;
+  appointmentId?: string;
+  appointmentType?: string;
+  checkupTime?: string;
+  petOwnerId?: string;
+  doctorId?: string;
 }) => {
   try {
     const response = await api.post("petOwner/submit/pet-issue", payload);

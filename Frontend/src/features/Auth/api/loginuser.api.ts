@@ -1,4 +1,3 @@
-import axios from "axios"
 import type { LoginFormData } from "../schemas/login.schema";
 import { api,handleAxiosError } from "@/features/api interface/axios.interface";
 

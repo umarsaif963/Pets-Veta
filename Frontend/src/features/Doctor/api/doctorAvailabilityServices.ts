@@ -13,7 +13,7 @@ export type WeekDay =
 export type DoctorSchedule = {
   id: string;
   doctorId: string;
-  day: WeekDay;
+  date: string;
   startTime: string;
   endTime: string;
   isBooked: boolean;

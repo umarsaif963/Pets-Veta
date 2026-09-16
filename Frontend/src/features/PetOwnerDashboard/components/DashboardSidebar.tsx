@@ -3,12 +3,9 @@ import {
   LayoutDashboard,
   LogOut,
   PawPrint,
-  Settings,
   ShoppingCart,
   Stethoscope,
-  Store,
   UserRound,
-  FileText,
   ShoppingBag, 
 } from "lucide-react";
 

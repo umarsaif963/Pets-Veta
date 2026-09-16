@@ -21,6 +21,7 @@ export type SellerProfile = {
   storeLogo: string | null;
   isActive: boolean;
   isVerified: boolean;
+  stripeOnboardingCompleted: boolean;
   createdAt: string;
   updatedAt: string;
   user?: {

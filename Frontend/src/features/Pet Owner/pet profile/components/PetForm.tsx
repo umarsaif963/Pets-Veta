@@ -98,7 +98,6 @@ const PetForm = ({
       const response = await createPetApi(data);
 
       reset();
-      setPreviews([]);
 
       if (onSubmitSuccess) {
         onSubmitSuccess(response);

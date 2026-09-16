@@ -7,7 +7,6 @@ import {
   Check,
   Info,
   Mail,
-  PawPrint,
   Pencil,
   Phone,
   Store,

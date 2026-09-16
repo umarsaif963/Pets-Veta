@@ -10,7 +10,6 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Button from "../../../../shared/components/Button/Button";
 import {
   petIssueReportSchema,
@@ -18,10 +17,6 @@ import {
 } from "../schemas/petIssueReport.schema";
 import { useAuth } from "@/features/Auth/hooks/authhook";
 import { submitPetIssue } from "../apis/pet.api";
-import {
-  getDoctorProfileData,
-  type BookableSlot,
-} from "@/features/Appointment/apis/doctorProfile.api";
 import type { PetIssueReportFormProps } from "../types/petDetails.types";
 
 const PetIssueReportForm = ({
@@ -32,11 +27,7 @@ const PetIssueReportForm = ({
   onCancel,
 }: PetIssueReportFormProps) => {
   const { user } = useAuth();
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [loadSlotsError, setLoadSlotsError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [availableSlots, setAvailableSlots] = useState<BookableSlot[]>([]);
-  const navigate = useNavigate();
 
   const {
     register,
@@ -55,29 +46,6 @@ const PetIssueReportForm = ({
     },
   });
 
-  const fetchDoctorSlots = async () => {
-    if (!doctorId) {
-      setLoadSlotsError("Doctor is required to load appointment slots.");
-      return;
-    }
-
-    setLoadingSlots(true);
-    setLoadSlotsError(null);
-
-    try {
-      const data = await getDoctorProfileData(doctorId);
-      setAvailableSlots(data?.availableSlots || []);
-    } catch {
-      setLoadSlotsError("Failed to load appointment slots. Please retry.");
-    } finally {
-      setLoadingSlots(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDoctorSlots();
-  }, [doctorId]);
-
   useEffect(() => {
     const savedPetId = localStorage.getItem("petPatientId") || preselectedPetId;
     if (savedPetId) {
@@ -93,7 +61,6 @@ const PetIssueReportForm = ({
 
   const issue = watch("issue") || "";
   const appointmentType = watch("appointmentType");
-  const selectedCheckupTime = watch("checkupTime");
 
   const onSubmit = async (data: PetIssueReportFormData) => {
     console.log("Working....")
