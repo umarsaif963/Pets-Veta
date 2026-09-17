@@ -12,9 +12,13 @@ export default function DoctorSignup() {
       </div>
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center justify-center gap-8 px-4 py-12 lg:flex-row lg:px-6">
-        {/* Brand side */}
-        <div className="w-full max-w-md lg:w-[38%]">
-          <div className="flex items-center gap-3">
+        {/* Brand side (desktop only) */}
+        <div className="hidden w-full max-w-md lg:block lg:w-[38%]">
+          <Link
+            to="/"
+            aria-label="PetsVeta home"
+            className="flex items-center gap-3 transition hover:opacity-85"
+          >
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#009f9d] text-white shadow-[0_10px_22px_rgba(0,159,157,0.32)]">
               <Stethoscope className="h-6 w-6" />
             </span>
@@ -28,7 +32,7 @@ export default function DoctorSignup() {
                 Health • Care • Community
               </span>
             </span>
-          </div>
+          </Link>
 
           <h1 className="mt-10 text-[34px] font-extrabold leading-[1.15] tracking-[-0.03em] text-[#07182c]">
             Join as a
@@ -71,18 +75,6 @@ export default function DoctorSignup() {
         <div className="w-full lg:w-[62%]">
           <DoctorForm />
         </div>
-      </div>
-
-      <div className="absolute bottom-6 left-0 right-0 z-10 text-center lg:hidden">
-        <p className="text-[13px] font-medium text-slate-500">
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            className="font-bold text-[#009f9d] transition hover:text-[#008f8d]"
-          >
-            Log in
-          </Link>
-        </p>
       </div>
     </main>
   );

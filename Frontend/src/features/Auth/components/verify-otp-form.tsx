@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import { ShieldCheck } from "lucide-react";
 import { useOtp } from "../hooks/useOtp";
 import { useResendOtp } from "../hooks/useResendOtp";
@@ -129,9 +129,13 @@ export default function VerifyOtpForm() {
   return (
     <div className="w-full">
       {/* Logo */}
-      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#d9f7f6] shadow-[0_10px_22px_rgba(0,159,157,0.22)]">
+      <Link
+        to="/"
+        aria-label="PetsVeta home"
+        className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#d9f7f6] shadow-[0_10px_22px_rgba(0,159,157,0.22)] transition hover:opacity-85"
+      >
         <ShieldCheck className="h-7 w-7 text-[#009f9d]" />
-      </div>
+      </Link>
 
       {/* Heading */}
       <div className="mb-6 text-center">

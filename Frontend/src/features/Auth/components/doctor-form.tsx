@@ -1,6 +1,7 @@
 import { useForm, type SubmitErrorHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   AtSign,
   BadgeCheck,
@@ -200,9 +201,13 @@ export default function DoctorForm() {
       <div className="rounded-[24px] border border-white bg-white p-6 shadow-[0_24px_70px_rgba(7,24,44,0.14)] sm:p-9">
         {/* Header */}
         <div className="mb-6 flex flex-col items-center text-center">
-          <span className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#d9f7f6] text-[#009f9d]">
+          <Link
+            to="/"
+            aria-label="PetsVeta home"
+            className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#d9f7f6] text-[#009f9d] transition hover:opacity-85"
+          >
             <Stethoscope className="h-7 w-7" />
-          </span>
+          </Link>
 
           <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-[#07182c]">
             Doctor Registration

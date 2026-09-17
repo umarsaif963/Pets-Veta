@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff, Lock, RefreshCcw } from "lucide-react";
@@ -60,9 +60,13 @@ export default function ResetPasswordForm() {
   return (
     <div className="w-full">
       {/* Logo */}
-      <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#d9f7f6] shadow-[0_10px_22px_rgba(0,159,157,0.22)]">
+      <Link
+        to="/"
+        aria-label="PetsVeta home"
+        className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#d9f7f6] shadow-[0_10px_22px_rgba(0,159,157,0.22)] transition hover:opacity-85"
+      >
         <RefreshCcw className="h-7 w-7 text-[#009f9d]" />
-      </div>
+      </Link>
 
       {/* Heading */}
       <div className="mb-6 text-center">
