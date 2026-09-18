@@ -1,6 +1,7 @@
-const { createClient } = require('redis');
+const { createClient } = require("redis");
 
 const redisUrl = process.env.REDIS_URL;
+
 let redisClient = null;
 
 if (redisUrl) {
@@ -9,31 +10,24 @@ if (redisUrl) {
         socket: {
             reconnectStrategy: false,
         },
-    })
-
-    redisClient.on('connect', () => {
-        console.log("Redis Connected")
-    })
-
-    redisClient.on('error', (err) => {
-        console.error("Error is Redi Connection", err.message)
     });
 
-    (async () => {
-        try {
-            await redisClient.connect();
+    redisClient.on("connect", () => {
+        console.log("Redis Connected");
+    });
 
-        } catch (error) {
-            console.error("Failed To Connect to Redis", error.message)
-        }
-    })()
+    redisClient.on("ready", () => {
+        console.log("Redis Ready");
+    });
+
+    redisClient.on("error", (err) => {
+        console.error("Redis Connection Error:", err.message);
+    });
 } else {
     console.warn("REDIS_URL not set. Using in-memory rate limiting.");
 }
 
-
-// The TypeScript RAG cache reuses this process-wide connection instead of
-// opening a second Redis socket pool.
+// The TypeScript RAG cache reuses this process-wide connection.
 globalThis.__petsVetaRedisClient = redisClient;
 
 module.exports = redisClient;

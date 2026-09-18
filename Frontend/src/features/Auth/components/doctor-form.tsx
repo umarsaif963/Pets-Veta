@@ -22,6 +22,7 @@ import {
 import { type ApiResponse } from "../api/doctor.api";
 
 import { useDoctorAccountHook } from "../hooks/useDoctorAccount";
+import LogoImage from "@/shared/components/Logo/LogoImage";
 
 import {
   doctorSchema,
@@ -204,9 +205,9 @@ export default function DoctorForm() {
           <Link
             to="/"
             aria-label="PetsVeta home"
-            className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-[#d9f7f6] text-[#009f9d] transition hover:opacity-85"
+            className="mb-4 block overflow-hidden rounded-2xl bg-white shadow-[0_10px_22px_rgba(0,159,157,0.22)] transition hover:opacity-85"
           >
-            <Stethoscope className="h-7 w-7" />
+            <LogoImage className="h-14 w-14" />
           </Link>
 
           <h1 className="text-[24px] font-extrabold leading-tight tracking-[-0.02em] text-[#07182c]">

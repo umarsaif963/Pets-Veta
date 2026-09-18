@@ -1,6 +1,6 @@
-import { PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { LoginFormData } from "../../schemas/login.schema";
+import LogoImage from "@/shared/components/Logo/LogoImage";
 import LoginHeader from "./LoginHeader";
 import LoginForm from "./LoginForm";
 
@@ -29,8 +29,8 @@ const AuthCard = ({
             aria-label="PetsVeta home"
             className="flex items-center gap-2 transition hover:opacity-85"
           >
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#009f9d] text-white">
-              <PawPrint className="h-5 w-5" />
+            <span className="block overflow-hidden rounded-xl bg-white">
+              <LogoImage className="h-9 w-9" />
             </span>
 
             <span className="text-[22px] font-extrabold tracking-tight text-[#07182c]">

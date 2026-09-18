@@ -1,6 +1,7 @@
 import { Bot, PawPrint, ShoppingCart, Stethoscope } from "lucide-react";
 import { Link } from "react-router-dom";
 import catAndDog from "@/assets/shared/images/catanddog.png";
+import LogoImage from "@/shared/components/Logo/LogoImage";
 import FeatureItem from "./FeatureItem";
 
 const HANDWRITTEN_FONT = {
@@ -50,8 +51,8 @@ const BrandPanel = () => {
               aria-label="PetsVeta home"
               className="inline-flex w-fit items-center gap-3 transition hover:opacity-85"
             >
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#009f9d] text-white shadow-[0_10px_22px_rgba(0,159,157,0.32)]">
-                <PawPrint className="h-6 w-6" />
+              <span className="block overflow-hidden rounded-2xl bg-white shadow-[0_10px_22px_rgba(0,159,157,0.32)]">
+                <LogoImage className="h-11 w-11" />
               </span>
 
               <span className="text-left">

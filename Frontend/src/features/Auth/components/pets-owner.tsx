@@ -12,25 +12,11 @@ import {
 } from "../schemas/petowner.schema";
 
 import { usePetOwnerHook } from "../hooks/usePetOwnerAccount";
+import LogoImage from "@/shared/components/Logo/LogoImage";
 import type {
   PetOwnerFormFieldProps,
   PetOwnerPasswordFieldProps,
 } from "../types/auth.types";
-
-const PawIcon = () => (
-  <svg
-    viewBox="0 0 64 64"
-    className="h-8 w-8 fill-[#009f9d]"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <circle cx="18" cy="22" r="7" />
-    <circle cx="32" cy="16" r="7" />
-    <circle cx="46" cy="22" r="7" />
-    <circle cx="24" cy="34" r="6" />
-    <circle cx="40" cy="34" r="6" />
-    <path d="M18 47c0-9 6-17 14-17s14 8 14 17c0 6-5 9-14 9s-14-3-14-9z" />
-  </svg>
-);
 
 export default function PetOwnerForm() {
   const [showPassword, setShowPassword] = useState<boolean>(false);
@@ -110,9 +96,9 @@ export default function PetOwnerForm() {
       <Link
         to="/"
         aria-label="PetsVeta home"
-        className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#d9f7f6] shadow-[0_10px_22px_rgba(0,159,157,0.22)] transition hover:opacity-85"
+        className="mx-auto mb-5 block h-14 w-14 overflow-hidden rounded-2xl bg-white shadow-[0_10px_22px_rgba(0,159,157,0.22)] transition hover:opacity-85"
       >
-        <PawIcon />
+        <LogoImage className="h-14 w-14" />
       </Link>
 
       {/* Heading */}

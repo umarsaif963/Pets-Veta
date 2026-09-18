@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 
-const logoUrl = "https://res.cloudinary.com/dqoeyomtf/image/upload/v1779458623/logo_tctgtx.png";
+export const logoUrl =
+  "https://res.cloudinary.com/dqoeyomtf/image/upload/v1779458623/logo_tctgtx.png";
 
 const Logo = () => {
   const navigate = useNavigate();
