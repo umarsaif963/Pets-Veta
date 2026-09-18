@@ -139,7 +139,8 @@ export default function DoctorForm() {
     mode: "onChange",
   });
 
-  const { mutate: createAccount } = useDoctorAccountHook({
+  const { mutate: createAccount, isPending: createAccountPending } =
+    useDoctorAccountHook({
     onSuccess: (response: ApiResponse) => {
       if (response.success) {
         setResponseMessage(response.message || "Account Created Successfully");
@@ -591,16 +592,18 @@ export default function DoctorForm() {
             ) : (
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || createAccountPending}
                 className="flex h-[54px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#009f9d] text-[15px] font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#008f8d] hover:shadow-[0_14px_28px_rgba(0,159,157,0.32)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none"
               >
-                {isSubmitting ? (
+                {isSubmitting || createAccountPending ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   "Create Account"
                 )}
 
-                {!isSubmitting && <span className="text-lg leading-none">→</span>}
+                {!isSubmitting && !createAccountPending && (
+                  <span className="text-lg leading-none">→</span>
+                )}
               </button>
             )}
           </div>

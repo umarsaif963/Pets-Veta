@@ -7,6 +7,573 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                       String                    @id @default(uuid())
+  fullName                 String
+  username                 String
+  email                    String                    @unique
+  isEmailVerified          Boolean                   @default(false)
+  password                 String?
+  phone                    String                    @default("")
+  profileImageUrl          String                    @default("Enter your Image")
+  bio                      String                    @default("Manage your pets, veterinary appointments, and health information from one place.")
+  isActive                 Boolean                   @default(true)
+  refreshToken             String?
+  otp                      String?
+  createdAt                DateTime                  @default(now())
+  admin                    Admin?
+  appointments             Appointment[]             @relation("PetOwnerAppointments")
+  createdConversations     Conversation[]            @relation("ConversationCreatedBy")
+  conversationParticipants ConversationParticipant[]
+  doctors                  Doctor?
+  doctorCertificate        DoctorCertificate?
+  doctorSkills             DoctorSkill[]
+  marketplaceBuyerOrders   MarketplaceOrder[]        @relation("MarketplaceBuyerOrders")
+  sentMessages             Message[]                 @relation("UserSentMessages")
+  messageReadReceipts      MessageReadReceipt[]
+  notifications            Notification[]
+  payments                 Payment[]
+  pets                     Pet[]
+  petIssueReports          PetIssueReport[]
+  savedListings            SavedListing[]
+  sellerProfile            SellerProfile?
+  userRole                 UserRole?
+
+  @@index([fullName])
+}
+
+model Doctor {
+  id                        String             @id @default(uuid())
+  userId                    String             @unique
+  isAvailable               Boolean            @default(false)
+  education                 String
+  specialization            String
+  medicalLicenseNumber      String             @default("")
+  address                   String
+  experience                Int
+  fees                      Int
+  isVerified                VerificationStatus @default(PENDING)
+  stripeConnectedAccountId  String?            @unique
+  stripeOnboardingCompleted Boolean            @default(false)
+  appointments              Appointment[]
+  user                      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  doctorSchedules           DoctorSchedule[]
+
+  @@index([userId])
+  @@index([specialization])
+  @@index([fees])
+  @@index([isAvailable])
+  @@index([specialization, fees, isAvailable])
+}
+
+model DoctorCertificate {
+  id        String @id @default(uuid())
+  userId    String @unique
+  publicUrl String
+  publicId  String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DoctorSkill {
+  id     String @id @default(uuid())
+  userId String
+  skill  String
+  price  String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model UserRole {
+  id     String @id @default(uuid())
+  userId String @unique
+  role   String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DoctorSchedule {
+  id                    String         @id @default(uuid())
+  doctorId              String
+  date                  DateTime
+  startTime             DateTime
+  endTime               DateTime
+  status                ScheduleStatus @default(AVAILABLE)
+  lockedAt              DateTime?
+  lockedByUserId        String?
+  lockedByAppointmentId String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  appointments          Appointment[]
+  doctor                Doctor         @relation(fields: [doctorId], references: [id])
+
+  @@unique([doctorId, startTime])
+  @@index([doctorId])
+  @@index([status])
+  @@index([lockedByAppointmentId])
+}
+
+model Pet {
+  id              String           @id @default(uuid())
+  petOwnerId      String
+  name            String
+  age             Decimal          @db.Decimal(10, 2)
+  breed           String
+  category        PetCategory
+  appointments    Appointment[]
+  user            User             @relation(fields: [petOwnerId], references: [id])
+  petIssueReports PetIssueReport[]
+  petPictures     PetPicture[]
+
+  @@index([petOwnerId])
+}
+
+model PetPicture {
+  id        String @id @default(uuid())
+  publicUrl String
+  publicId  String
+  petId     String
+  pet       Pet    @relation(fields: [petId], references: [id])
+}
+
+model PetIssueReport {
+  id           String        @id @default(uuid())
+  petOwnerId   String
+  petId        String
+  issue        String
+  createdAt    DateTime      @default(now())
+  appointments Appointment[]
+  pet          Pet           @relation(fields: [petId], references: [id])
+  user         User          @relation(fields: [petOwnerId], references: [id])
+
+  @@index([petOwnerId])
+  @@index([petId])
+}
+
+model Appointment {
+  id               String            @id @default(uuid())
+  doctorId         String
+  petOwnerId       String
+  petId            String?
+  petIssueReportId String?
+  scheduleId       String
+  fees             Int
+  currency         String            @default("pkr")
+  status           AppointmentStatus @default(PENDING_DETAILS)
+  paymentStatus    PaymentStatus     @default(PENDING)
+  checkupTime      DateTime
+  expiresAt        DateTime?
+  confirmedAt      DateTime?
+  cancelledAt      DateTime?
+  completedAt      DateTime?
+  appointmentCode  String?           @unique
+  isCodeVerified   Boolean           @default(false)
+  codeVerifiedAt   DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  doctor           Doctor            @relation(fields: [doctorId], references: [id])
+  pet              Pet?              @relation(fields: [petId], references: [id])
+  petIssueReport   PetIssueReport?   @relation(fields: [petIssueReportId], references: [id])
+  petOwner         User              @relation("PetOwnerAppointments", fields: [petOwnerId], references: [id])
+  doctorSchedule   DoctorSchedule    @relation(fields: [scheduleId], references: [id])
+  payment          Payment?
+
+  @@index([doctorId])
+  @@index([petOwnerId])
+  @@index([petId])
+  @@index([petIssueReportId])
+  @@index([scheduleId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([expiresAt])
+}
+
+model Payment {
+  id                    String         @id @default(uuid())
+  appointmentId         String         @unique
+  userId                String
+  stripePaymentIntentId String?        @unique
+  stripeClientSecret    String?
+  stripeChargeId        String?
+  amount                Int
+  currency              String         @default("pkr")
+  status                PaymentStatus  @default(PENDING)
+  paymentMethod         String?
+  receiptUrl            String?
+  failureReason         String?
+  metadata              Json?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  paidAt                DateTime?
+  cancelledAt           DateTime?
+  refundedAt            DateTime?
+  appointment           Appointment    @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  user                  User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  events                PaymentEvent[]
+  refunds               Refund[]
+
+  @@index([appointmentId])
+  @@index([userId])
+  @@index([stripePaymentIntentId])
+  @@index([status])
+}
+
+model PaymentEvent {
+  id                    String    @id @default(uuid())
+  stripeEventId         String?   @unique
+  eventType             String
+  paymentId             String?
+  appointmentId         String?
+  stripePaymentIntentId String?
+  payload               Json
+  processed             Boolean   @default(false)
+  processingError       String?
+  createdAt             DateTime  @default(now())
+  processedAt           DateTime?
+  payment               Payment?  @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId])
+  @@index([appointmentId])
+  @@index([stripePaymentIntentId])
+  @@index([eventType])
+  @@index([processed])
+}
+
+model Refund {
+  id             String   @id @default(uuid())
+  paymentId      String
+  appointmentId  String
+  stripeRefundId String?  @unique
+  amount         Int
+  currency       String   @default("pkr")
+  reason         String?
+  status         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  payment        Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId])
+  @@index([appointmentId])
+  @@index([stripeRefundId])
+}
+
+model SellerProfile {
+  id                        String               @id @default(uuid())
+  userId                    String               @unique
+  businessName              String?
+  businessAddress           String?
+  phoneNumber               String?
+  city                      String?
+  storeDescription          String?
+  storeLogo                 String?
+  isActive                  Boolean              @default(true)
+  isVerified                Boolean              @default(false)
+  stripeConnectedAccountId  String?              @unique
+  stripeOnboardingCompleted Boolean              @default(false)
+  createdAt                 DateTime             @default(now())
+  updatedAt                 DateTime             @updatedAt
+  sellerOrders              MarketplaceOrder[]   @relation("MarketplaceSellerOrders")
+  products                  MarketplaceProduct[]
+  user                      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model MarketplaceProduct {
+  id          String                    @id @default(uuid())
+  sellerId    String
+  title       String
+  description String?
+  category    ProductCategory
+  status      ProductStatus             @default(ACTIVE)
+  price       Decimal                   @db.Decimal(10, 2)
+  stock       Int                       @default(0)
+  location    String?
+  breed       String?
+  age         String?
+  gender      PetGender?
+  vaccinated  Boolean?
+  brand       String?
+  weight      String?
+  size        String?
+  sku         String?
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  orderItems  MarketplaceOrderItem[]
+  seller      SellerProfile             @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  images      MarketplaceProductImage[]
+  savedBy     SavedListing[]
+
+  @@index([sellerId])
+  @@index([category])
+  @@index([status])
+  @@index([location])
+  @@index([category, status])
+}
+
+model MarketplaceProductImage {
+  id        String             @id @default(uuid())
+  publicUrl String
+  publicId  String?
+  productId String
+  createdAt DateTime           @default(now())
+  product   MarketplaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+model SavedListing {
+  id        String             @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime           @default(now())
+  product   MarketplaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+model MarketplaceOrder {
+  id                    String                 @id @default(uuid())
+  orderNumber           String                 @unique
+  buyerId               String
+  sellerId              String
+  status                MarketplaceOrderStatus @default(PENDING)
+  paymentStatus         PaymentStatus          @default(PENDING)
+  totalAmount           Decimal                @db.Decimal(10, 2)
+  deliveryFee           Decimal?               @db.Decimal(10, 2)
+  discount              Decimal?               @db.Decimal(10, 2)
+  shippingAddress       String?
+  phoneNumber           String?
+  stripePaymentIntentId String?                @unique
+  stripeClientSecret    String?
+  isPayoutReleased      Boolean                @default(false)
+  payoutReleasedAt      DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  buyer                 User                   @relation("MarketplaceBuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller                SellerProfile          @relation("MarketplaceSellerOrders", fields: [sellerId], references: [id], onDelete: Cascade)
+  items                 MarketplaceOrderItem[]
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+  @@index([paymentStatus])
+}
+
+model MarketplaceOrderItem {
+  id        String             @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Int
+  price     Decimal            @db.Decimal(10, 2)
+  createdAt DateTime           @default(now())
+  order     MarketplaceOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   MarketplaceProduct @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Conversation {
+  id            String                    @id @default(uuid())
+  type          ConversationType          @default(DIRECT)
+  title         String?
+  directKey     String?                   @unique
+  contextType   String?
+  contextId     String?
+  createdById   String?
+  lastMessageId String?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  createdBy     User?                     @relation("ConversationCreatedBy", fields: [createdById], references: [id])
+  lastMessage   Message?                  @relation("ConversationLastMessage", fields: [lastMessageId], references: [id])
+  participants  ConversationParticipant[]
+  messages      Message[]                 @relation("ConversationMessages")
+
+  @@index([type])
+  @@index([createdById])
+  @@index([lastMessageId])
+  @@index([contextType, contextId])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  userId         String
+  isMuted        Boolean      @default(false)
+  joinedAt       DateTime     @default(now())
+  leftAt         DateTime?
+  lastReadAt     DateTime?
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+}
+
+model Message {
+  id             String               @id @default(uuid())
+  conversationId String
+  senderId       String?
+  type           MessageType          @default(TEXT)
+  body           String?
+  replyToId      String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  lastMessageFor Conversation[]       @relation("ConversationLastMessage")
+  conversation   Conversation         @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+  replyTo        Message?             @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies        Message[]            @relation("MessageReplies")
+  sender         User?                @relation("UserSentMessages", fields: [senderId], references: [id])
+  attachments    MessageAttachment[]
+  readReceipts   MessageReadReceipt[]
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([replyToId])
+  @@index([createdAt])
+}
+
+model MessageAttachment {
+  id        String   @id @default(uuid())
+  messageId String
+  publicUrl String
+  publicId  String?
+  fileName  String?
+  mimeType  String?
+  size      Int?
+  createdAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+}
+
+model MessageReadReceipt {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+  @@index([userId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType @default(SYSTEM)
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([userId, isRead])
+}
+
+/// Canonical record for one source knowledge asset.
+///
+/// A document owns its ordered chunks and carries fields used for lifecycle
+/// management, metadata filtering, change detection, and re-indexing. Deleting
+/// this row cascades to all associated chunks so stale vectors cannot remain.
+model KnowledgeDocument {
+  /// Stable database identifier; UUIDs are suitable for distributed ingestion.
+  id          String           @id @default(uuid()) @db.Uuid
+  /// Human-readable title and URL-safe public/admin identifier.
+  title       String           @db.VarChar(255)
+  slug        String           @unique @db.VarChar(255)
+  /// Normalized filtering dimensions used before vector similarity search.
+  animal      AnimalType
+  category    String           @db.VarChar(100)
+  subCategory String?          @db.VarChar(100)
+  language    String           @default("en") @db.VarChar(16)
+  /// Monotonic content revision. Historical snapshots can later move to a
+  /// dedicated version model without changing chunk ownership semantics.
+  version     Int              @default(1)
+  /// Optional source label/URI and the unique ingestion path for idempotent
+  /// upserts. filePath remains format-agnostic for future admin uploads.
+  source      String?          @db.VarChar(255)
+  filePath    String           @unique @db.VarChar(1024)
+  fileType    FileType         @default(MARKDOWN)
+  /// Optional SHA-256 digest used to skip unchanged files during re-indexing.
+  checksum    String?          @db.VarChar(64)
+  /// DRAFT content can be reviewed before activation; ARCHIVED content is
+  /// retained without being eligible for normal retrieval.
+  status      DocumentStatus   @default(DRAFT)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  chunks      KnowledgeChunk[]
+
+  @@index([animal])
+  @@index([category])
+  @@index([subCategory])
+  @@index([source])
+  @@index([checksum])
+  @@index([status])
+  @@index([language, status])
+  @@index([animal, category, subCategory, status])
+  @@index([status, updatedAt])
+}
+
+/// Ordered, citation-ready segment of a KnowledgeDocument.
+///
+/// Chunk rows keep the original text, flexible metadata, and a native pgvector
+/// embedding together. The composite unique constraint makes chunk writes
+/// idempotent during incremental and full-document re-indexing.
+/// This model contains an expression index which requires additional setup for migrations. Visit https://pris.ly/d/expression-indexes for more info.
+model KnowledgeChunk {
+  id                  String                 @id @default(uuid()) @db.Uuid
+  /// Required parent key. The relation uses database-level cascading so both
+  /// Prisma and direct SQL deletions clean up chunk/vector data consistently.
+  knowledgeDocumentId String                 @db.Uuid
+  /// Zero-based stable position within the parent document.
+  chunkIndex          Int
+  /// Optional nearest Markdown/PDF heading retained for citations and display.
+  heading             String?                @db.VarChar(500)
+  content             String
+  /// Token estimate recorded at ingestion for prompt-budget planning.
+  tokenCount          Int
+  /// Native PostgreSQL pgvector value. BGE Small produces 384 dimensions;
+  /// changing dimensionality requires a deliberate migration and re-index.
+  embedding           Unsupported("vector")?
+  /// Records which model generated the vector, enabling controlled future
+  /// migrations between embedding models without storing vectors as JSON.
+  embeddingModel      String?                @db.VarChar(255)
+  /// Flexible source/chunk attributes used for citations and future filters.
+  /// JSONB is selected for PostgreSQL indexing and containment operations.
+  metadata            Json                   @default("{}")
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  knowledgeDocument   KnowledgeDocument      @relation(fields: [knowledgeDocumentId], references: [id], onDelete: Cascade)
+
+  @@unique([knowledgeDocumentId, chunkIndex])
+  @@index([knowledgeDocumentId])
+  @@index([chunkIndex])
+  @@index([embeddingModel])
+  @@index([metadata(ops: JsonbPathOps)], type: Gin)
+}
+
 enum VerificationStatus {
   PENDING
   APPROVED
@@ -137,694 +704,4 @@ enum DocumentStatus {
 enum FileType {
   MARKDOWN
   PDF
-}
-
-model User {
-  id              String   @id @default(uuid())
-  fullName        String
-  username        String
-  email           String   @unique
-  isEmailVerified Boolean  @default(false)
-  password        String?
-  phone           String   @default("")
-  profileImageUrl String   @default("Enter your Image")
-  bio             String   @default("Manage your pets, veterinary appointments, and health information from one place.")
-  isActive        Boolean  @default(true)
-  refreshToken    String?
-  otp             String?
-  createdAt       DateTime @default(now())
-
-  userRole          UserRole?
-  doctors           Doctor?
-  admin             Admin?
-  doctorCertificate DoctorCertificate?
-  pets              Pet[]
-  petIssueReports   PetIssueReport[]
-  doctorSkills      DoctorSkill[]
-
-  appointments Appointment[] @relation("PetOwnerAppointments")
-  payments     Payment[]
-
-  sellerProfile          SellerProfile?
-  savedListings          SavedListing[]
-  marketplaceBuyerOrders MarketplaceOrder[] @relation("MarketplaceBuyerOrders")
-
-  createdConversations     Conversation[]            @relation("ConversationCreatedBy")
-  conversationParticipants ConversationParticipant[]
-  sentMessages             Message[]                 @relation("UserSentMessages")
-  messageReadReceipts      MessageReadReceipt[]
-
-  notifications Notification[]
-
-  @@index([fullName])
-}
-
-model Doctor {
-  id                   String             @id @default(uuid())
-  userId               String             @unique
-  isAvailable          Boolean            @default(false)
-  education            String
-  specialization       String
-  medicalLicenseNumber String             @default("")
-  address              String
-  experience           Int
-  fees                 Int
-  isVerified           VerificationStatus @default(PENDING)
-
-  stripeConnectedAccountId  String? @unique
-  stripeOnboardingCompleted Boolean @default(false)
-
-  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  doctorSchedules DoctorSchedule[]
-  appointments    Appointment[]
-
-  @@index([userId])
-  @@index([specialization])
-  @@index([fees])
-  @@index([isAvailable])
-  @@index([specialization, fees, isAvailable])
-}
-
-model DoctorCertificate {
-  id        String @id @default(uuid())
-  userId    String @unique
-  publicUrl String
-  publicId  String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model DoctorSkill {
-  id     String @id @default(uuid())
-  userId String
-  skill  String
-  price  String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Admin {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-model UserRole {
-  id     String @id @default(uuid())
-  userId String @unique
-  role   String
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model DoctorSchedule {
-  id        String         @id @default(uuid())
-  doctorId  String
-  date      DateTime
-  startTime DateTime
-  endTime   DateTime
-  status    ScheduleStatus @default(AVAILABLE)
-
-  lockedAt              DateTime?
-  lockedByUserId        String?
-  lockedByAppointmentId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  doctor       Doctor        @relation(fields: [doctorId], references: [id])
-  appointments Appointment[]
-
-  @@unique([doctorId, startTime])
-  @@index([doctorId])
-  @@index([status])
-  @@index([lockedByAppointmentId])
-}
-
-model Pet {
-  id         String      @id @default(uuid())
-  petOwnerId String
-  name       String
-  age        Decimal     @db.Decimal(10, 2)
-  breed      String
-  category   PetCategory
-
-  user            User             @relation(fields: [petOwnerId], references: [id])
-  petIssueReports PetIssueReport[]
-  petPictures     PetPicture[]
-  appointments    Appointment[]
-
-  @@index([petOwnerId])
-}
-
-model PetPicture {
-  id        String @id @default(uuid())
-  publicUrl String
-  publicId  String
-  petId     String
-
-  pet Pet @relation(fields: [petId], references: [id])
-}
-
-model PetIssueReport {
-  id         String   @id @default(uuid())
-  petOwnerId String
-  petId      String
-  issue      String
-  createdAt  DateTime @default(now())
-
-  pet  Pet  @relation(fields: [petId], references: [id])
-  user User @relation(fields: [petOwnerId], references: [id])
-
-  appointments Appointment[]
-
-  @@index([petOwnerId])
-  @@index([petId])
-}
-
-model Appointment {
-  id String @id @default(uuid())
-
-  doctorId         String
-  petOwnerId       String
-  petId            String?
-  petIssueReportId String?
-  scheduleId       String
-
-  fees     Int
-  currency String @default("pkr")
-
-  status        AppointmentStatus @default(PENDING_DETAILS)
-  paymentStatus PaymentStatus     @default(PENDING)
-
-  checkupTime DateTime
-  expiresAt   DateTime?
-
-  confirmedAt DateTime?
-  cancelledAt DateTime?
-  completedAt DateTime?
-
-
-  appointmentCode String?   @unique
-  isCodeVerified  Boolean   @default(false)
-  codeVerifiedAt  DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  doctor         Doctor          @relation(fields: [doctorId], references: [id])
-  petOwner       User            @relation("PetOwnerAppointments", fields: [petOwnerId], references: [id])
-  pet            Pet?            @relation(fields: [petId], references: [id])
-  petIssueReport PetIssueReport? @relation(fields: [petIssueReportId], references: [id])
-  doctorSchedule DoctorSchedule  @relation(fields: [scheduleId], references: [id])
-
-  payment Payment?
-
-  @@index([doctorId])
-  @@index([petOwnerId])
-  @@index([petId])
-  @@index([petIssueReportId])
-  @@index([scheduleId])
-  @@index([status])
-  @@index([paymentStatus])
-  @@index([expiresAt])
-}
-
-model Payment {
-  id String @id @default(uuid())
-
-  appointmentId String @unique
-  userId        String
-
-  stripePaymentIntentId String? @unique
-  stripeClientSecret    String?
-  stripeChargeId        String?
-
-  amount   Int
-  currency String @default("pkr")
-
-  status PaymentStatus @default(PENDING)
-
-  paymentMethod String?
-  receiptUrl    String?
-  failureReason String?
-
-  metadata Json?
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  paidAt      DateTime?
-  cancelledAt DateTime?
-  refundedAt  DateTime?
-
-  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  events  PaymentEvent[]
-  refunds Refund[]
-
-  @@index([appointmentId])
-  @@index([userId])
-  @@index([stripePaymentIntentId])
-  @@index([status])
-}
-
-model PaymentEvent {
-  id String @id @default(uuid())
-
-  stripeEventId String? @unique
-  eventType     String
-
-  paymentId     String?
-  appointmentId String?
-
-  stripePaymentIntentId String?
-
-  payload         Json
-  processed       Boolean @default(false)
-  processingError String?
-
-  createdAt   DateTime  @default(now())
-  processedAt DateTime?
-
-  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
-
-  @@index([paymentId])
-  @@index([appointmentId])
-  @@index([stripePaymentIntentId])
-  @@index([eventType])
-  @@index([processed])
-}
-
-model Refund {
-  id String @id @default(uuid())
-
-  paymentId     String
-  appointmentId String
-
-  stripeRefundId String? @unique
-  amount         Int
-  currency       String  @default("pkr")
-  reason         String?
-  status         String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
-
-  @@index([paymentId])
-  @@index([appointmentId])
-  @@index([stripeRefundId])
-}
-
-model SellerProfile {
-  id     String @id @default(uuid())
-  userId String @unique
-
-  businessName     String?
-  businessAddress  String?
-  phoneNumber      String?
-  city             String?
-  storeDescription String?
-  storeLogo        String?
-  isActive         Boolean @default(true)
-  isVerified       Boolean @default(false)
-
-
-  stripeConnectedAccountId String?         @unique
-  stripeOnboardingCompleted Boolean        @default(false)
-
-  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  products     MarketplaceProduct[]
-  sellerOrders MarketplaceOrder[]   @relation("MarketplaceSellerOrders")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([isActive])
-}
-
-model MarketplaceProduct {
-  id       String @id @default(uuid())
-  sellerId String
-
-  title       String
-  description String?
-  category    ProductCategory
-  status      ProductStatus   @default(ACTIVE)
-
-  price    Decimal @db.Decimal(10, 2)
-  stock    Int     @default(0)
-  location String?
-
-  breed      String?
-  age        String?
-  gender     PetGender?
-  vaccinated Boolean?
-
-  brand  String?
-  weight String?
-  size   String?
-  sku    String?
-
-  seller     SellerProfile             @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  images     MarketplaceProductImage[]
-  savedBy    SavedListing[]
-  orderItems MarketplaceOrderItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([sellerId])
-  @@index([category])
-  @@index([status])
-  @@index([location])
-  @@index([category, status])
-}
-
-model MarketplaceProductImage {
-  id        String  @id @default(uuid())
-  publicUrl String
-  publicId  String?
-  productId String
-
-  product MarketplaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@index([productId])
-}
-
-model SavedListing {
-  id        String @id @default(uuid())
-  userId    String
-  productId String
-
-  user    User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product MarketplaceProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, productId])
-  @@index([userId])
-  @@index([productId])
-}
-
-model MarketplaceOrder {
-  id          String @id @default(uuid())
-  orderNumber String @unique
-
-  buyerId  String
-  sellerId String
-
-  status        MarketplaceOrderStatus @default(PENDING)
-  paymentStatus PaymentStatus          @default(PENDING)
-
-  totalAmount Decimal  @db.Decimal(10, 2)
-  deliveryFee Decimal? @db.Decimal(10, 2)
-  discount    Decimal? @db.Decimal(10, 2)
-
-  shippingAddress String?
-  phoneNumber     String?
-
-  stripePaymentIntentId String? @unique
-  stripeClientSecret    String?
-
-
-  isPayoutReleased      Boolean  @default(false)
-  payoutReleasedAt      DateTime?
-
-  buyer  User                   @relation("MarketplaceBuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
-  seller SellerProfile          @relation("MarketplaceSellerOrders", fields: [sellerId], references: [id], onDelete: Cascade)
-  items  MarketplaceOrderItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([buyerId])
-  @@index([sellerId])
-  @@index([status])
-  @@index([paymentStatus])
-}
-
-model MarketplaceOrderItem {
-  id        String @id @default(uuid())
-  orderId   String
-  productId String
-
-  quantity Int
-  price    Decimal @db.Decimal(10, 2)
-
-  order   MarketplaceOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product MarketplaceProduct @relation(fields: [productId], references: [id])
-
-  createdAt DateTime @default(now())
-
-  @@index([orderId])
-  @@index([productId])
-}
-
-model Conversation {
-  id String @id @default(uuid())
-
-  type      ConversationType @default(DIRECT)
-  title     String?
-  directKey String?          @unique
-
-  contextType String?
-  contextId   String?
-
-  createdById   String?
-  lastMessageId String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  createdBy User? @relation("ConversationCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
-
-  participants ConversationParticipant[]
-  messages     Message[]                 @relation("ConversationMessages")
-
-  lastMessage Message? @relation("ConversationLastMessage", fields: [lastMessageId], references: [id], onDelete: SetNull)
-
-  @@index([type])
-  @@index([createdById])
-  @@index([lastMessageId])
-  @@index([contextType, contextId])
-}
-
-model ConversationParticipant {
-  id String @id @default(uuid())
-
-  conversationId String
-  userId         String
-
-  isMuted    Boolean   @default(false)
-  joinedAt   DateTime  @default(now())
-  leftAt     DateTime?
-  lastReadAt DateTime?
-
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([conversationId, userId])
-  @@index([conversationId])
-  @@index([userId])
-}
-
-model Message {
-  id String @id @default(uuid())
-
-  conversationId String
-  senderId       String?
-
-  type MessageType @default(TEXT)
-  body String?
-
-  replyToId String?
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  editedAt  DateTime?
-  deletedAt DateTime?
-
-  conversation Conversation @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
-
-  sender User? @relation("UserSentMessages", fields: [senderId], references: [id], onDelete: SetNull)
-
-  replyTo Message?  @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
-  replies Message[] @relation("MessageReplies")
-
-  attachments  MessageAttachment[]
-  readReceipts MessageReadReceipt[]
-
-  lastMessageFor Conversation[] @relation("ConversationLastMessage")
-
-  @@index([conversationId])
-  @@index([senderId])
-  @@index([replyToId])
-  @@index([createdAt])
-}
-
-model MessageAttachment {
-  id String @id @default(uuid())
-
-  messageId String
-
-  publicUrl String
-  publicId  String?
-
-  fileName String?
-  mimeType String?
-  size     Int?
-
-  createdAt DateTime @default(now())
-
-  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-
-  @@index([messageId])
-}
-
-model MessageReadReceipt {
-  id String @id @default(uuid())
-
-  messageId String
-  userId    String
-
-  readAt DateTime @default(now())
-
-  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([messageId, userId])
-  @@index([messageId])
-  @@index([userId])
-}
-
-model Notification {
-  id String @id @default(uuid())
-
-  userId String
-
-  type    NotificationType @default(SYSTEM)
-  title   String
-  message String
-  link    String?
-
-  isRead Boolean @default(false)
-
-  metadata Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([type])
-  @@index([isRead])
-  @@index([createdAt])
-  @@index([userId, isRead])
-}
-
-/// Canonical record for one source knowledge asset.
-///
-/// A document owns its ordered chunks and carries fields used for lifecycle
-/// management, metadata filtering, change detection, and re-indexing. Deleting
-/// this row cascades to all associated chunks so stale vectors cannot remain.
-model KnowledgeDocument {
-  /// Stable database identifier; UUIDs are suitable for distributed ingestion.
-  id String @id @default(uuid()) @db.Uuid
-
-  /// Human-readable title and URL-safe public/admin identifier.
-  title String @db.VarChar(255)
-  slug  String @unique @db.VarChar(255)
-
-  /// Normalized filtering dimensions used before vector similarity search.
-  animal      AnimalType
-  category    String     @db.VarChar(100)
-  subCategory String?    @db.VarChar(100)
-  language    String     @default("en") @db.VarChar(16)
-
-  /// Monotonic content revision. Historical snapshots can later move to a
-  /// dedicated version model without changing chunk ownership semantics.
-  version Int @default(1)
-
-  /// Optional source label/URI and the unique ingestion path for idempotent
-  /// upserts. filePath remains format-agnostic for future admin uploads.
-  source   String?  @db.VarChar(255)
-  filePath String   @unique @db.VarChar(1024)
-  fileType FileType @default(MARKDOWN)
-
-  /// Optional SHA-256 digest used to skip unchanged files during re-indexing.
-  checksum String? @db.VarChar(64)
-
-  /// DRAFT content can be reviewed before activation; ARCHIVED content is
-  /// retained without being eligible for normal retrieval.
-  status DocumentStatus @default(DRAFT)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  chunks KnowledgeChunk[]
-
-  @@index([animal])
-  @@index([category])
-  @@index([subCategory])
-  @@index([source])
-  @@index([checksum])
-  @@index([status])
-  // slug and filePath already receive indexes through their unique constraints.
-  @@index([language, status])
-  @@index([animal, category, subCategory, status])
-  @@index([status, updatedAt])
-}
-
-/// Ordered, citation-ready segment of a KnowledgeDocument.
-///
-/// Chunk rows keep the original text, flexible metadata, and a native pgvector
-/// embedding together. The composite unique constraint makes chunk writes
-/// idempotent during incremental and full-document re-indexing.
-model KnowledgeChunk {
-  id String @id @default(uuid()) @db.Uuid
-
-  /// Required parent key. The relation uses database-level cascading so both
-  /// Prisma and direct SQL deletions clean up chunk/vector data consistently.
-  knowledgeDocumentId String            @db.Uuid
-  knowledgeDocument   KnowledgeDocument @relation(fields: [knowledgeDocumentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  /// Zero-based stable position within the parent document.
-  chunkIndex Int
-
-  /// Optional nearest Markdown/PDF heading retained for citations and display.
-  heading String? @db.VarChar(500)
-  content String  @db.Text
-
-  /// Token estimate recorded at ingestion for prompt-budget planning.
-  tokenCount Int
-
-  /// Native PostgreSQL pgvector value. BGE Small produces 384 dimensions;
-  /// changing dimensionality requires a deliberate migration and re-index.
-  embedding Unsupported("vector(384)")?
-
-  /// Records which model generated the vector, enabling controlled future
-  /// migrations between embedding models without storing vectors as JSON.
-  embeddingModel String? @db.VarChar(255)
-
-  /// Flexible source/chunk attributes used for citations and future filters.
-  /// JSONB is selected for PostgreSQL indexing and containment operations.
-  metadata Json @default("{}") @db.JsonB
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([knowledgeDocumentId, chunkIndex])
-  @@index([knowledgeDocumentId])
-  @@index([chunkIndex])
-  @@index([embeddingModel])
-  @@index([metadata(ops: JsonbPathOps)], type: Gin)
 }

@@ -9,7 +9,7 @@ export const ProtectedRoutes = ({ children }: { children: React.ReactNode }) => 
         return <div>Loading....</div>
     }
     if (!isAuthenticatedUser) {
-        return <Navigate to={'/login'} />
+        return <Navigate to={'/login'} replace />
     }
     return children;
 }

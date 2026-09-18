@@ -18,7 +18,7 @@ export const DoctorSidebar = ({ sidebarOpen, setSidebarOpen }: DoctorSidebarProp
            
             setUser(undefined);
             setIsAuthenticateUser(false);
-            navigate("/login");
+            navigate("/login", { replace: true });
         }
     };
     const sidebarLinks = [

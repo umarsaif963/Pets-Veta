@@ -25,7 +25,7 @@ export default function PetOwnerForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
   const [isError, setIsError] = useState<string>("");
 
-  const { mutate: createAccount } = usePetOwnerHook({
+  const { mutate: createAccount, isPending: createAccountPending } = usePetOwnerHook({
     onSuccess: (response: ApiResponse) => {
       console.log("Role is ", response);
       if (response.success) {
@@ -171,10 +171,10 @@ export default function PetOwnerForm() {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || createAccountPending || isGoogleLoading}
           className="mt-1 flex h-[52px] w-full items-center justify-center gap-3 rounded-xl bg-[#009f9d] text-[15px] font-bold text-white shadow-[0_12px_28px_rgba(0,159,157,0.32)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#008f8d] hover:shadow-[0_16px_32px_rgba(0,159,157,0.38)] active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-none"
         >
-          {isSubmitting ? (
+          {isSubmitting || createAccountPending ? (
             <span className="flex items-center gap-2">
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
               Creating Account...

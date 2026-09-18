@@ -66,7 +66,7 @@ const DashboardSidebar = () => {
 
       setUser(undefined);
       setIsAuthenticateUser(false);
-      navigate("/login");
+      navigate("/login", { replace: true });
     }
   };
 

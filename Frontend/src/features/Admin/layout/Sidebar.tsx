@@ -15,7 +15,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     if (response.success) {
       setUser(undefined);
       setIsAuthenticateUser(false);
-      navigate('/admin-login');
+      navigate('/admin-login', { replace: true });
   
     }
   }
